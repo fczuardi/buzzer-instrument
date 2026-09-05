@@ -33,11 +33,11 @@ The broader context and provisional architecture are documented in [embedded-mus
 ## Current slice
 
 The current firmware is a note-frequency and waveform smoke test. It starts on
-C4, advances one semitone with Button A, cycles the waveform with Button B, and
-resets to C4 when Button A is held. Each navigation action plays the selected
-note for 300 ms. Frequencies are calculated from MIDI note numbers and
-sent to M5Unified's `M5.Speaker` API with conservative gain settings chosen from
-hardware testing.
+C3, advances through a C major scale up to C7 with Button A, cycles `sq32`,
+and `saw32` with Button B, and resets to C3 when Button A is held. Each
+navigation action plays the selected note for 300 ms. Frequencies are
+calculated from MIDI note numbers and sent to M5Unified's `M5.Speaker` API with
+conservative gain settings chosen from hardware testing.
 
 ## Commands
 

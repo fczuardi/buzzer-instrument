@@ -11,34 +11,23 @@ struct WaveformDefinition {
   size_t sampleCount;
 };
 
-// One-cycle 8-bit wave tables used by M5Unified's sampled-tone path.
-// Hardware testing showed that the M5StickC Plus2 buzzer needs conservative
-// gain, and that waveform shape strongly affects perceived musical usefulness.
-constexpr uint8_t SQUARE_WAVE_16[] = {
+constexpr uint8_t SQUARE_WAVE_32[] = {
     255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255,
+    0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,
 };
 
-constexpr uint8_t PULSE_WAVE_16[] = {
-    255, 255, 0, 0, 0, 0, 0, 0,
-    0,   0,   0, 0, 0, 0, 0, 0,
-};
-
-constexpr uint8_t SAW_WAVE_16[] = {
-    0,   17,  34,  51,  68,  85,  102, 119,
-    136, 153, 170, 187, 204, 221, 238, 255,
-};
-
-constexpr uint8_t SAW_DOWN_WAVE_16[] = {
-    255, 238, 221, 204, 187, 170, 153, 136,
-    119, 102, 85,  68,  51,  34,  17,  0,
+constexpr uint8_t SAW_WAVE_32[] = {
+    0,   8,   16,  25,  33,  41,  49,  58,
+    66,  74,  82,  90,  99,  107, 115, 123,
+    132, 140, 148, 156, 165, 173, 181, 189,
+    197, 206, 214, 222, 230, 239, 247, 255,
 };
 
 constexpr WaveformDefinition WAVEFORMS[] = {
-    {SpeakerToneOutput::Waveform::Square, "square16", SQUARE_WAVE_16, sizeof(SQUARE_WAVE_16)},
-    {SpeakerToneOutput::Waveform::Pulse, "pulse16", PULSE_WAVE_16, sizeof(PULSE_WAVE_16)},
-    {SpeakerToneOutput::Waveform::Saw, "saw16", SAW_WAVE_16, sizeof(SAW_WAVE_16)},
-    {SpeakerToneOutput::Waveform::SawDown, "sawdown16", SAW_DOWN_WAVE_16, sizeof(SAW_DOWN_WAVE_16)},
+    {SpeakerToneOutput::Waveform::Square32, "sq32", SQUARE_WAVE_32, sizeof(SQUARE_WAVE_32)},
+    {SpeakerToneOutput::Waveform::Saw32, "saw32", SAW_WAVE_32, sizeof(SAW_WAVE_32)},
 };
 
 const WaveformDefinition& waveformDefinition(SpeakerToneOutput::Waveform waveform) {

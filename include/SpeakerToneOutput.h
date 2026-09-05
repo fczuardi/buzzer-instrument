@@ -9,10 +9,8 @@
 class SpeakerToneOutput {
 public:
   enum class Waveform : uint8_t {
-    Square,
-    Pulse,
-    Saw,
-    SawDown,
+    Square32,
+    Saw32,
   };
 
   void begin();
@@ -33,5 +31,5 @@ private:
 
   bool initialized_ = false;
   bool playing_ = false;
-  Waveform waveform_ = Waveform::Saw;
+  Waveform waveform_ = Waveform::Saw32;
 };

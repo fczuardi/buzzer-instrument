@@ -7,55 +7,77 @@
 namespace {
 constexpr uint32_t SMOKE_TEST_DURATION_MS = 300;
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
-constexpr uint8_t FIRST_DEMO_MIDI_NOTE = 60;  // C4 with the 60=C4 convention.
-constexpr uint8_t LAST_DEMO_MIDI_NOTE = 108;  // C8 keeps the range piano-like.
+constexpr uint8_t C_MAJOR_SCALE_NOTES[] = {
+    48,  // C3
+    50,  // D3
+    52,  // E3
+    53,  // F3
+    55,  // G3
+    57,  // A3
+    59,  // B3
+    60,  // C4
+    62,  // D4
+    64,  // E4
+    65,  // F4
+    67,  // G4
+    69,  // A4
+    71,  // B4
+    72,  // C5
+    74,  // D5
+    76,  // E5
+    77,  // F5
+    79,  // G5
+    81,  // A5
+    83,  // B5
+    84,  // C6
+    86,  // D6
+    88,  // E6
+    89,  // F6
+    91,  // G6
+    93,  // A6
+    95,  // B6
+    96,  // C7
+};
 
 SpeakerToneOutput speakerToneOutput;
 bool tonePlaying = false;
-uint8_t selectedMidiNoteNumber = FIRST_DEMO_MIDI_NOTE;
+size_t selectedScaleIndex = 0;
 uint32_t toneStartedAtMs = 0;
 uint32_t lastUptimeLogAtMs = 0;
 
+size_t scaleNoteCount() {
+  return sizeof(C_MAJOR_SCALE_NOTES) / sizeof(C_MAJOR_SCALE_NOTES[0]);
+}
+
+uint8_t selectedMidiNoteNumber() {
+  return C_MAJOR_SCALE_NOTES[selectedScaleIndex];
+}
+
 void selectedNoteName(char* output, size_t outputSize) {
-  midiNoteName(selectedMidiNoteNumber, output, outputSize);
+  midiNoteName(selectedMidiNoteNumber(), output, outputSize);
 }
 
 float selectedFrequencyHz() {
-  return midiNoteToFrequencyHz(selectedMidiNoteNumber);
-}
-
-void selectNote(uint8_t midiNoteNumber) {
-  selectedMidiNoteNumber = midiNoteNumber;
+  return midiNoteToFrequencyHz(selectedMidiNoteNumber());
 }
 
 void resetToFirstNote() {
-  selectNote(FIRST_DEMO_MIDI_NOTE);
+  selectedScaleIndex = 0;
 }
 
-void advanceSemitone() {
-  if (selectedMidiNoteNumber >= LAST_DEMO_MIDI_NOTE) {
-    resetToFirstNote();
-    return;
-  }
-
-  selectNote(selectedMidiNoteNumber + 1);
+void advanceScaleDegree() {
+  selectedScaleIndex = (selectedScaleIndex + 1) % scaleNoteCount();
 }
 
 void selectNextWaveform() {
   using Waveform = SpeakerToneOutput::Waveform;
 
   switch (speakerToneOutput.waveform()) {
-    case Waveform::Square:
-      speakerToneOutput.setWaveform(Waveform::Pulse);
+    case Waveform::Square32:
+      speakerToneOutput.setWaveform(Waveform::Saw32);
       break;
-    case Waveform::Pulse:
-      speakerToneOutput.setWaveform(Waveform::Saw);
-      break;
-    case Waveform::Saw:
-      speakerToneOutput.setWaveform(Waveform::SawDown);
-      break;
-    case Waveform::SawDown:
-      speakerToneOutput.setWaveform(Waveform::Square);
+    case Waveform::Saw32:
+      speakerToneOutput.setWaveform(Waveform::Square32);
       break;
   }
 }
@@ -71,9 +93,9 @@ void drawStaticScreen() {
   M5.Display.setTextSize(1);
   M5.Display.println("MIDI note frequency test");
   M5.Display.println();
-  M5.Display.println("BtnA: +1 semitone");
+  M5.Display.println("BtnA: next note");
   M5.Display.println("BtnB: waveform");
-  M5.Display.println("Hold A: C4");
+  M5.Display.println("Hold A: C3");
 }
 
 void drawToneState(const char* stateLabel) {
@@ -98,7 +120,7 @@ void drawToneState(const char* stateLabel) {
   M5.Display.printf(
       "Note: %s (%u)\n",
       noteName,
-      selectedMidiNoteNumber);
+      selectedMidiNoteNumber());
   M5.Display.print("Freq: ");
   M5.Display.print(selectedFrequencyHz(), 2);
   M5.Display.println(" Hz");
@@ -120,7 +142,7 @@ void startSelectedNote() {
       toneStarted ? "true" : "false",
       speakerToneOutput.waveformName(),
       noteName,
-      selectedMidiNoteNumber,
+      selectedMidiNoteNumber(),
       frequencyHz,
       SMOKE_TEST_DURATION_MS);
   drawToneState(toneStarted ? "playing" : "failed");
@@ -172,12 +194,12 @@ void loop() {
   M5.update();
 
   if (M5.BtnA.wasHold()) {
-    stopTone("reset_to_c4");
+    stopTone("reset_to_c3");
     resetToFirstNote();
     startSelectedNote();
   } else if (M5.BtnA.wasClicked()) {
-    stopTone("advance_semitone");
-    advanceSemitone();
+    stopTone("advance_scale_degree");
+    advanceScaleDegree();
     startSelectedNote();
   }
 
@@ -190,7 +212,7 @@ void loop() {
         "buzzer: waveform_selected waveform=%s note=%s midi_note=%u frequency_hz=%.2f\n",
         speakerToneOutput.waveformName(),
         noteName,
-        selectedMidiNoteNumber,
+        selectedMidiNoteNumber(),
         selectedFrequencyHz());
     startSelectedNote();
   }
