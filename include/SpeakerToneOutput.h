@@ -8,11 +8,21 @@
 // note priority, or MIDI behavior should live in higher-level code.
 class SpeakerToneOutput {
 public:
+  enum class Waveform : uint8_t {
+    Square,
+    Pulse,
+    Saw,
+    SawDown,
+  };
+
   void begin();
   void end();
-  bool startTone(uint32_t frequencyHz);
+  bool startTone(float frequencyHz);
   void stop();
   bool isPlaying() const;
+  void setWaveform(Waveform waveform);
+  Waveform waveform() const;
+  const char* waveformName() const;
 
 private:
   static constexpr int SPEAKER_CHANNEL = 0;
@@ -23,4 +33,5 @@ private:
 
   bool initialized_ = false;
   bool playing_ = false;
+  Waveform waveform_ = Waveform::Saw;
 };

@@ -6,7 +6,7 @@ The first target is the buzzer built into the M5StickC Plus2. The repository nam
 
 ## First milestone
 
-Produce one square-wave note at a time on the built-in buzzer:
+Produce one note at a time on the built-in buzzer:
 
 - convert a musical note into its frequency;
 - start and stop the tone reliably;
@@ -32,10 +32,12 @@ The broader context and provisional architecture are documented in [embedded-mus
 
 ## Current slice
 
-The current firmware is a buzzer smoke test. It plays a short A4 tone at 440 Hz
-on boot, repeats the tone with Button A, and stops playback with Button B. The
-output uses M5Unified's `M5.Speaker` API with conservative gain settings chosen
-from hardware testing.
+The current firmware is a note-frequency and waveform smoke test. It starts on
+C4, advances one semitone with Button A, cycles the waveform with Button B, and
+resets to C4 when Button A is held. Each navigation action plays the selected
+note for 300 ms. Frequencies are calculated from MIDI note numbers and
+sent to M5Unified's `M5.Speaker` API with conservative gain settings chosen from
+hardware testing.
 
 ## Commands
 
