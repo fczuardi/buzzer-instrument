@@ -33,7 +33,9 @@ The broader context and provisional architecture are documented in [embedded-mus
 ## Current slice
 
 The current firmware is a buzzer smoke test. It plays a short A4 tone at 440 Hz
-on boot, repeats the tone with Button A, and stops playback with Button B.
+on boot, repeats the tone with Button A, and stops playback with Button B. The
+output uses M5Unified's `M5.Speaker` API with conservative gain settings chosen
+from hardware testing.
 
 ## Commands
 
