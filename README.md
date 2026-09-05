@@ -30,4 +30,15 @@ The broader context and provisional architecture are documented in [embedded-mus
 - Arduino framework
 - M5Unified
 
-No source code has been committed yet. The implementation plan should be revised after the smallest possible tone experiment has been tested on the device.
+## Current slice
+
+The current firmware is a buzzer smoke test. It plays a short A4 tone at 440 Hz
+on boot, repeats the tone with Button A, and stops playback with Button B.
+
+## Commands
+
+```bash
+env PLATFORMIO_CORE_DIR=.platformio-home pio run
+env PLATFORMIO_CORE_DIR=.platformio-home pio run --target upload
+env PLATFORMIO_CORE_DIR=.platformio-home pio device monitor
+```
