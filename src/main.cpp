@@ -25,7 +25,6 @@ void drawStaticScreen() {
   M5.Display.println();
   M5.Display.println("BtnA: C4 note on/off");
   M5.Display.println("BtnB: waveform");
-  M5.Display.println("MIDI-like event test");
 }
 
 void drawToneState(const char* stateLabel) {
@@ -93,6 +92,19 @@ void stopTone(const char* reason) {
   Serial.println(reason);
   drawToneState("idle");
 }
+
+void handleVoiceAction(const VoiceAction& action) {
+  switch (action.type) {
+    case VoiceActionType::None:
+      return;
+    case VoiceActionType::StartNote:
+      startActiveNote();
+      return;
+    case VoiceActionType::StopNote:
+      stopTone("note_off");
+      return;
+  }
+}
 }
 
 void setup() {
@@ -127,13 +139,12 @@ void loop() {
   M5.update();
 
   if (M5.BtnA.wasPressed()) {
-    instrument.noteOn(MonophonicInstrument::DEFAULT_TEST_NOTE, 100);
-    startActiveNote();
+    handleVoiceAction(
+        instrument.noteOn(MonophonicInstrument::DEFAULT_TEST_NOTE, 100));
   }
 
   if (M5.BtnA.wasReleased()) {
-    instrument.noteOff(MonophonicInstrument::DEFAULT_TEST_NOTE);
-    stopTone("note_off");
+    handleVoiceAction(instrument.noteOff(MonophonicInstrument::DEFAULT_TEST_NOTE));
   }
 
   if (M5.BtnB.wasClicked()) {

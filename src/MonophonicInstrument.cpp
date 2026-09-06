@@ -18,24 +18,57 @@ void MonophonicInstrument::noteName(char* output, size_t outputSize) const {
   midiNoteName(midiNoteNumber(), output, outputSize);
 }
 
-void MonophonicInstrument::noteOn(uint8_t midiNoteNumber, uint8_t velocity) {
+VoiceAction MonophonicInstrument::noteOn(
+    uint8_t midiNoteNumber,
+    uint8_t velocity) {
   if (velocity == 0) {
-    noteOff(midiNoteNumber);
-    return;
+    return noteOff(midiNoteNumber);
   }
 
+  const int existingIndex = heldNoteIndex(midiNoteNumber);
+  if (existingIndex >= 0) {
+    removeHeldNoteAt(static_cast<size_t>(existingIndex));
+  }
+
+  pushHeldNote(midiNoteNumber);
   activeMidiNote_ = midiNoteNumber;
   noteActive_ = true;
+  return startAction(midiNoteNumber);
 }
 
-void MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
-  if (noteActive_ && activeMidiNote_ == midiNoteNumber) {
-    noteActive_ = false;
+VoiceAction MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
+  const int existingIndex = heldNoteIndex(midiNoteNumber);
+  if (existingIndex < 0) {
+    return {VoiceActionType::None, 0};
   }
+
+  const bool removingActiveNote =
+      noteActive_ && activeMidiNote_ == midiNoteNumber;
+  removeHeldNoteAt(static_cast<size_t>(existingIndex));
+
+  if (!removingActiveNote) {
+    return {VoiceActionType::None, 0};
+  }
+
+  if (heldNoteCount_ == 0) {
+    noteActive_ = false;
+    return stopAction(midiNoteNumber);
+  }
+
+  activeMidiNote_ = heldNotes_[heldNoteCount_ - 1];
+  return startAction(activeMidiNote_);
 }
 
-void MonophonicInstrument::stopAll() {
+VoiceAction MonophonicInstrument::stopAll() {
+  if (!noteActive_) {
+    heldNoteCount_ = 0;
+    return {VoiceActionType::None, 0};
+  }
+
+  const uint8_t stoppedNote = activeMidiNote_;
   noteActive_ = false;
+  heldNoteCount_ = 0;
+  return stopAction(stoppedNote);
 }
 
 ToneWaveform MonophonicInstrument::waveform() const {
@@ -55,4 +88,43 @@ void MonophonicInstrument::selectNextWaveform() {
       waveform_ = ToneWaveform::Square32;
       break;
   }
+}
+
+VoiceAction MonophonicInstrument::startAction(uint8_t midiNoteNumber) const {
+  return {VoiceActionType::StartNote, midiNoteNumber};
+}
+
+VoiceAction MonophonicInstrument::stopAction(uint8_t midiNoteNumber) const {
+  return {VoiceActionType::StopNote, midiNoteNumber};
+}
+
+int MonophonicInstrument::heldNoteIndex(uint8_t midiNoteNumber) const {
+  for (size_t i = 0; i < heldNoteCount_; ++i) {
+    if (heldNotes_[i] == midiNoteNumber) {
+      return static_cast<int>(i);
+    }
+  }
+
+  return -1;
+}
+
+void MonophonicInstrument::removeHeldNoteAt(size_t index) {
+  if (index >= heldNoteCount_) {
+    return;
+  }
+
+  for (size_t i = index; i + 1 < heldNoteCount_; ++i) {
+    heldNotes_[i] = heldNotes_[i + 1];
+  }
+
+  --heldNoteCount_;
+}
+
+void MonophonicInstrument::pushHeldNote(uint8_t midiNoteNumber) {
+  if (heldNoteCount_ == MAX_HELD_NOTES) {
+    removeHeldNoteAt(0);
+  }
+
+  heldNotes_[heldNoteCount_] = midiNoteNumber;
+  ++heldNoteCount_;
 }
