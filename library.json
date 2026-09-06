@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
+  "name": "EmbeddedMusicBuzzerInstrument",
+  "version": "0.1.0",
+  "description": "Monophonic buzzer instrument for embedded music experiments",
+  "keywords": ["buzzer", "instrument", "midi", "embedded", "music"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fczuardi/buzzer-instrument.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "headers": [
+    "MidiNote.h",
+    "MonophonicInstrument.h",
+    "MonophonicInstrumentSink.h",
+    "SpeakerToneOutput.h",
+    "ToneWaveform.h",
+    "VoiceOutput.h"
+  ],
+  "dependencies": [
+    {
+      "name": "EmbeddedMusicFirmwareContracts",
+      "version": "https://github.com/fczuardi/embedded-music-experiments.git#2577b866e6588044853faa8eb3dedab2c1f3952a"
+    },
+    {
+      "owner": "m5stack",
+      "name": "M5Unified",
+      "version": "0.2.17"
+    }
+  ],
+  "build": {
+    "srcFilter": [
+      "-<*>",
+      "+<MidiNote.cpp>",
+      "+<MonophonicInstrument.cpp>",
+      "+<MonophonicInstrumentSink.cpp>",
+      "+<SpeakerToneOutput.cpp>",
+      "+<ToneWaveform.cpp>"
+    ]
+  },
+  "export": {
+    "include": [
+      "include/MidiNote.h",
+      "include/MonophonicInstrument.h",
+      "include/MonophonicInstrumentSink.h",
+      "include/SpeakerToneOutput.h",
+      "include/ToneWaveform.h",
+      "include/VoiceOutput.h",
+      "src/MidiNote.cpp",
+      "src/MonophonicInstrument.cpp",
+      "src/MonophonicInstrumentSink.cpp",
+      "src/SpeakerToneOutput.cpp",
+      "src/ToneWaveform.cpp",
+      "docs/devlog/012-package-buzzer-instrument.md",
+      "README.md",
+      "library.json"
+    ]
+  }
+}

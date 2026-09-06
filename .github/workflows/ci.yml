@@ -58,3 +58,39 @@ jobs:
 
       - name: Build firmware
         run: env PLATFORMIO_CORE_DIR=.platformio-home pio run
+
+      - name: Validate PlatformIO library package
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack . --output /tmp
+
+      - name: Build temporary package consumer
+        run: |
+          mkdir -p /tmp/buzzer-instrument-consumer/src
+          cat > /tmp/buzzer-instrument-consumer/platformio.ini <<'EOF'
+          [env:esp32dev]
+          platform = platformio/espressif32@7.0.1
+          board = esp32dev
+          framework = arduino
+          lib_deps =
+            file://${{ github.workspace }}
+          EOF
+          cat > /tmp/buzzer-instrument-consumer/src/main.cpp <<'EOF'
+          #include <Arduino.h>
+          #include <M5Unified.h>
+
+          #include "MonophonicInstrument.h"
+          #include "MonophonicInstrumentSink.h"
+          #include "SpeakerToneOutput.h"
+
+          MonophonicInstrument instrument;
+          SpeakerToneOutput output;
+          MonophonicInstrumentSink sink(instrument, output);
+
+          void setup() {
+            output.setWaveform(instrument.waveform());
+            sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
+            sink.onNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
+          }
+
+          void loop() {}
+          EOF
+          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/buzzer-instrument-consumer

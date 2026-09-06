@@ -43,11 +43,16 @@ Button A simulates a C4 note while pressed, and Button B toggles `sq32`/`saw32`.
 `EmbeddedMusicFirmwareContracts` PlatformIO package in
 `embedded-music-experiments`.
 
+The root `library.json` packages the reusable instrument pieces as
+`EmbeddedMusicBuzzerInstrument`, so a separate showcase firmware can consume the
+buzzer instrument without importing this repository's local button smoke test.
+
 ## Commands
 
 ```bash
 env PLATFORMIO_CORE_DIR=.platformio-home pio test -e native
 env PLATFORMIO_CORE_DIR=.platformio-home pio run
+env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack . --output /tmp
 env PLATFORMIO_CORE_DIR=.platformio-home pio run --target upload
 env PLATFORMIO_CORE_DIR=.platformio-home pio device monitor
 ```
