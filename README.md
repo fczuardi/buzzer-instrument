@@ -39,6 +39,10 @@ priority, and `SpeakerToneOutput` implements the hardware-neutral `VoiceOutput`
 interface that renders the active note through M5Unified's `M5.Speaker` API.
 Button A simulates a C4 note while pressed, and Button B toggles `sq32`/`saw32`.
 
+`NoteEvent` and `InstrumentEventSink` come from the shared
+`EmbeddedMusicFirmwareContracts` PlatformIO package in
+`embedded-music-experiments`.
+
 ## Commands
 
 ```bash
