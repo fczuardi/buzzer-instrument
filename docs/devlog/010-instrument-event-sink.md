@@ -23,6 +23,11 @@ does not trigger it, but native tests verify that `onDisconnected()` stops the
 voice and clears held notes so a future BLE disconnect cannot leave stale note
 state inside the instrument.
 
+`onDisconnected()` also calls `VoiceOutput::stopNote()` unconditionally. This
+is intentionally defensive: even if the instrument state and physical output
+somehow diverge, disconnection still means the audible output must become
+silent.
+
 Verification command:
 
 ```bash

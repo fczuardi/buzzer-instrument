@@ -11,7 +11,8 @@ void MonophonicInstrumentSink::onNoteEvent(const NoteEvent& event) {
 }
 
 void MonophonicInstrumentSink::onDisconnected() {
-  applyVoiceAction(instrument_.stopAll());
+  instrument_.stopAll();
+  voiceOutput_.stopNote();
 }
 
 void MonophonicInstrumentSink::applyVoiceAction(const VoiceAction& action) {
