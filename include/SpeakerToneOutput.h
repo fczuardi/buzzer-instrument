@@ -5,6 +5,11 @@
 #include "ToneWaveform.h"
 #include "VoiceOutput.h"
 
+struct VelocityVolumeRange {
+  uint8_t minimum;
+  uint8_t maximum;
+};
+
 // Drives the buzzer through M5Unified's Speaker abstraction.
 //
 // This class owns only hardware output. Musical decisions such as note names,
@@ -23,7 +28,9 @@ public:
   void stop();
   void setVolume(uint8_t volume);
   uint8_t volume() const;
-  static uint8_t volumeForVelocity(uint8_t velocity);
+  void setVelocityVolumeRange(VelocityVolumeRange range);
+  VelocityVolumeRange velocityVolumeRange() const;
+  uint8_t volumeForVelocity(uint8_t velocity) const;
   void setWaveform(ToneWaveform waveform);
   ToneWaveform waveform() const;
   const char* waveformName() const;
@@ -43,5 +50,9 @@ private:
   bool initialized_ = false;
   bool playing_ = false;
   uint8_t volume_ = SPEAKER_VOLUME;
+  VelocityVolumeRange velocityVolumeRange_ = {
+      MIN_VELOCITY_VOLUME,
+      MAX_VELOCITY_VOLUME,
+  };
   ToneWaveform waveform_ = ToneWaveform::Saw32;
 };

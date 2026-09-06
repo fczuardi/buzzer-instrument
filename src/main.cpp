@@ -10,6 +10,7 @@ namespace {
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
 constexpr uint8_t DEFAULT_TEST_CHANNEL = 1;
 constexpr uint8_t TEST_VELOCITY_LEVELS[] = {1, 32, 64, 96, 127};
+constexpr VelocityVolumeRange TEST_VELOCITY_VOLUME_RANGE = {64, 128};
 
 MonophonicInstrument instrument;
 SpeakerToneOutput speakerToneOutput;
@@ -56,7 +57,7 @@ void drawToneState(uint8_t midiNote, const char* stateLabel) {
   M5.Display.println(TEST_VELOCITY_LEVELS[selectedVelocityIndex]);
   M5.Display.print("Vol: ");
   M5.Display.println(
-      SpeakerToneOutput::volumeForVelocity(
+      speakerToneOutput.volumeForVelocity(
           TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
   M5.Display.printf(
       "Note: %s (%u)\n",
@@ -142,8 +143,9 @@ void setup() {
   M5.Display.setBrightness(96);
 
   speakerToneOutput.begin();
+  speakerToneOutput.setVelocityVolumeRange(TEST_VELOCITY_VOLUME_RANGE);
   speakerToneOutput.setVolume(
-      SpeakerToneOutput::volumeForVelocity(
+      speakerToneOutput.volumeForVelocity(
           TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
   speakerToneOutput.setWaveform(instrument.waveform());
 
@@ -193,14 +195,14 @@ void loop() {
         (selectedVelocityIndex + 1) %
         (sizeof(TEST_VELOCITY_LEVELS) / sizeof(TEST_VELOCITY_LEVELS[0]));
     speakerToneOutput.setVolume(
-        SpeakerToneOutput::volumeForVelocity(
+        speakerToneOutput.volumeForVelocity(
             TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
     char noteName[5];
     instrument.noteName(noteName, sizeof(noteName));
     Serial.printf(
         "buzzer: velocity_selected velocity=%u mapped_volume=%u waveform=%s note=%s midi_note=%u frequency_hz=%.2f\n",
         TEST_VELOCITY_LEVELS[selectedVelocityIndex],
-        SpeakerToneOutput::volumeForVelocity(
+        speakerToneOutput.volumeForVelocity(
             TEST_VELOCITY_LEVELS[selectedVelocityIndex]),
         instrument.waveformName(),
         noteName,

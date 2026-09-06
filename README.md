@@ -42,7 +42,9 @@ levels so the hardware can validate the current velocity-to-volume mapping.
 
 The current hardware result suggests that volumes `64..128` are usable on the
 M5StickC Plus2 buzzer. Lower values may lose the recognizable pitch, while
-larger values become distorted.
+larger values become distorted. `SpeakerToneOutput::setVelocityVolumeRange()`
+allows firmware experiments to tune those limits without changing the instrument
+policy.
 
 `NoteEvent` and `InstrumentEventSink` come from the shared
 `EmbeddedMusicFirmwareContracts` PlatformIO package in
