@@ -3,18 +3,21 @@
 #include <cstdint>
 
 #include "ToneWaveform.h"
+#include "VoiceOutput.h"
 
 // Drives the buzzer through M5Unified's Speaker abstraction.
 //
 // This class owns only hardware output. Musical decisions such as note names,
 // note priority, or MIDI behavior should live in higher-level code.
-class SpeakerToneOutput {
+class SpeakerToneOutput : public VoiceOutput {
 public:
   void begin();
   void end();
+  bool startNote(uint8_t midiNote, ToneWaveform waveform) override;
+  void stopNote() override;
+  bool isPlaying() const override;
   bool startTone(float frequencyHz);
   void stop();
-  bool isPlaying() const;
   void setWaveform(ToneWaveform waveform);
   ToneWaveform waveform() const;
   const char* waveformName() const;

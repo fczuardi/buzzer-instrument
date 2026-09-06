@@ -68,9 +68,9 @@ void startNote(uint8_t midiNote) {
   char noteName[5];
   midiNoteName(midiNote, noteName, sizeof(noteName));
 
-  speakerToneOutput.setWaveform(instrument.waveform());
   const float frequencyHz = midiNoteToFrequencyHz(midiNote);
-  const bool toneStarted = speakerToneOutput.startTone(frequencyHz);
+  const bool toneStarted =
+      speakerToneOutput.startNote(midiNote, instrument.waveform());
   tonePlaying = toneStarted;
 
   Serial.printf(
@@ -88,7 +88,7 @@ void stopTone(const char* reason) {
     return;
   }
 
-  speakerToneOutput.stop();
+  speakerToneOutput.stopNote();
   tonePlaying = false;
 
   Serial.print("buzzer: tone_stop reason=");

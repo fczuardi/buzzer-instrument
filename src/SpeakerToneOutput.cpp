@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <M5Unified.h>
 
+#include "MidiNote.h"
+
 namespace {
 struct WaveformDefinition {
   ToneWaveform waveform;
@@ -84,6 +86,11 @@ bool SpeakerToneOutput::startTone(float frequencyHz) {
   return toneStarted;
 }
 
+bool SpeakerToneOutput::startNote(uint8_t midiNote, ToneWaveform waveform) {
+  setWaveform(waveform);
+  return startTone(midiNoteToFrequencyHz(midiNote));
+}
+
 void SpeakerToneOutput::stop() {
   if (!initialized_) {
     return;
@@ -91,6 +98,10 @@ void SpeakerToneOutput::stop() {
 
   M5.Speaker.stop(SPEAKER_CHANNEL);
   playing_ = false;
+}
+
+void SpeakerToneOutput::stopNote() {
+  stop();
 }
 
 bool SpeakerToneOutput::isPlaying() const {
