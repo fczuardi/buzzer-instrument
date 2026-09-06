@@ -1,11 +1,14 @@
 #include <Arduino.h>
 #include <M5Unified.h>
 
+#include "MidiNote.h"
 #include "MonophonicInstrument.h"
 #include "SpeakerToneOutput.h"
 
 namespace {
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
+constexpr uint8_t DEFAULT_TEST_CHANNEL = 1;
+constexpr uint8_t DEFAULT_TEST_VELOCITY = 100;
 
 MonophonicInstrument instrument;
 SpeakerToneOutput speakerToneOutput;
@@ -27,7 +30,7 @@ void drawStaticScreen() {
   M5.Display.println("BtnB: waveform");
 }
 
-void drawToneState(const char* stateLabel) {
+void drawToneState(uint8_t midiNote, const char* stateLabel) {
   constexpr int32_t STATE_ROW_Y = 72;
   constexpr int32_t STATE_ROW_HEIGHT = 48;
 
@@ -41,7 +44,7 @@ void drawToneState(const char* stateLabel) {
   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
   M5.Display.setTextSize(1);
   char noteName[5];
-  instrument.noteName(noteName, sizeof(noteName));
+  midiNoteName(midiNote, noteName, sizeof(noteName));
 
   M5.Display.println("Output: M5.Speaker");
   M5.Display.print("Wave: ");
@@ -49,24 +52,24 @@ void drawToneState(const char* stateLabel) {
   M5.Display.printf(
       "Note: %s (%u)\n",
       noteName,
-      instrument.midiNoteNumber());
+      midiNote);
   M5.Display.print("Freq: ");
-  M5.Display.print(instrument.frequencyHz(), 2);
+  M5.Display.print(midiNoteToFrequencyHz(midiNote), 2);
   M5.Display.println(" Hz");
   M5.Display.print("State: ");
   M5.Display.println(stateLabel);
 }
 
-void startActiveNote() {
-  if (!instrument.isNoteActive()) {
-    return;
-  }
+void drawInstrumentState(const char* stateLabel) {
+  drawToneState(instrument.midiNoteNumber(), stateLabel);
+}
 
+void startNote(uint8_t midiNote) {
   char noteName[5];
-  instrument.noteName(noteName, sizeof(noteName));
+  midiNoteName(midiNote, noteName, sizeof(noteName));
 
   speakerToneOutput.setWaveform(instrument.waveform());
-  const float frequencyHz = instrument.frequencyHz();
+  const float frequencyHz = midiNoteToFrequencyHz(midiNote);
   const bool toneStarted = speakerToneOutput.startTone(frequencyHz);
   tonePlaying = toneStarted;
 
@@ -75,9 +78,9 @@ void startActiveNote() {
       toneStarted ? "true" : "false",
       speakerToneOutput.waveformName(),
       noteName,
-      instrument.midiNoteNumber(),
+      midiNote,
       frequencyHz);
-  drawToneState(toneStarted ? "playing" : "failed");
+  drawToneState(midiNote, toneStarted ? "playing" : "failed");
 }
 
 void stopTone(const char* reason) {
@@ -90,7 +93,7 @@ void stopTone(const char* reason) {
 
   Serial.print("buzzer: tone_stop reason=");
   Serial.println(reason);
-  drawToneState("idle");
+  drawInstrumentState("idle");
 }
 
 void handleVoiceAction(const VoiceAction& action) {
@@ -98,7 +101,7 @@ void handleVoiceAction(const VoiceAction& action) {
     case VoiceActionType::None:
       return;
     case VoiceActionType::StartNote:
-      startActiveNote();
+      startNote(action.midiNote);
       return;
     case VoiceActionType::StopNote:
       stopTone("note_off");
@@ -132,19 +135,30 @@ void setup() {
       speakerToneOutput.waveformName());
 
   drawStaticScreen();
-  drawToneState("idle");
+  drawInstrumentState("idle");
 }
 
 void loop() {
   M5.update();
 
   if (M5.BtnA.wasPressed()) {
-    handleVoiceAction(
-        instrument.noteOn(MonophonicInstrument::DEFAULT_TEST_NOTE, 100));
+    const NoteEvent event = {
+        NoteEventType::NoteOn,
+        DEFAULT_TEST_CHANNEL,
+        MonophonicInstrument::DEFAULT_TEST_NOTE,
+        DEFAULT_TEST_VELOCITY,
+    };
+    handleVoiceAction(instrument.handleNoteEvent(event));
   }
 
   if (M5.BtnA.wasReleased()) {
-    handleVoiceAction(instrument.noteOff(MonophonicInstrument::DEFAULT_TEST_NOTE));
+    const NoteEvent event = {
+        NoteEventType::NoteOff,
+        DEFAULT_TEST_CHANNEL,
+        MonophonicInstrument::DEFAULT_TEST_NOTE,
+        0,
+    };
+    handleVoiceAction(instrument.handleNoteEvent(event));
   }
 
   if (M5.BtnB.wasClicked()) {
@@ -164,9 +178,9 @@ void loop() {
         instrument.frequencyHz());
 
     if (wasPlaying) {
-      startActiveNote();
+      startNote(instrument.midiNoteNumber());
     } else {
-      drawToneState("idle");
+      drawInstrumentState("idle");
     }
   }
 

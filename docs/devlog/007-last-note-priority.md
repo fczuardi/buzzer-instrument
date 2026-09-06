@@ -27,3 +27,13 @@ env PLATFORMIO_CORE_DIR=.platformio-home pio run
 
 Expected result: Button A still behaves as before for the hardware smoke test,
 while native tests prove the richer multi-note priority behavior.
+
+Follow-up: `VoiceAction` now carries the exact MIDI note that should be started
+or stopped, and the hardware layer executes that note directly instead of
+re-reading instrument state. This keeps the command safe if voice actions later
+move through a queue.
+
+The held-note list has a fixed capacity of 16 notes. When capacity is exceeded,
+the oldest held note is discarded and the most recent notes keep their priority.
+That policy keeps the event path allocation-free and is now covered by a native
+test.

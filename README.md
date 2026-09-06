@@ -33,10 +33,10 @@ The broader context and provisional architecture are documented in [embedded-mus
 ## Current slice
 
 The current firmware is a monophonic note-event smoke test.
-`MonophonicInstrument` accepts MIDI-like `noteOn()` and `noteOff()` calls and
-tracks held notes with last-note priority. Button A simulates a C4 note while
-pressed, Button B toggles `sq32`/`saw32`, and the active note is rendered
-through M5Unified's `M5.Speaker` API.
+`MonophonicInstrument` accepts typed `NoteEvent` values and tracks held notes
+with last-note priority. Button A simulates a C4 note while pressed, Button B
+toggles `sq32`/`saw32`, and the active note is rendered through M5Unified's
+`M5.Speaker` API.
 
 ## Commands
 

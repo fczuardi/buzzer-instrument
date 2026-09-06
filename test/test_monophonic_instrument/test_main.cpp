@@ -133,6 +133,50 @@ void test_note_on_with_zero_velocity_is_note_off() {
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
+void test_typed_note_on_event_starts_note() {
+  MonophonicInstrument instrument;
+  const NoteEvent event = {NoteEventType::NoteOn, 3, 65, 88};
+
+  const VoiceAction action = instrument.handleNoteEvent(event);
+
+  assertVoiceAction(action, VoiceActionType::StartNote, 65);
+  TEST_ASSERT_TRUE(instrument.isNoteActive());
+  TEST_ASSERT_EQUAL_UINT8(65, instrument.midiNoteNumber());
+}
+
+void test_typed_note_off_event_stops_matching_note() {
+  MonophonicInstrument instrument;
+
+  instrument.handleNoteEvent({NoteEventType::NoteOn, 2, 65, 88});
+  const VoiceAction action =
+      instrument.handleNoteEvent({NoteEventType::NoteOff, 2, 65, 0});
+
+  assertVoiceAction(action, VoiceActionType::StopNote, 65);
+  TEST_ASSERT_FALSE(instrument.isNoteActive());
+}
+
+void test_typed_note_on_event_with_zero_velocity_is_note_off() {
+  MonophonicInstrument instrument;
+
+  instrument.handleNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
+  const VoiceAction action =
+      instrument.handleNoteEvent({NoteEventType::NoteOn, 1, 60, 0});
+
+  assertVoiceAction(action, VoiceActionType::StopNote, 60);
+  TEST_ASSERT_FALSE(instrument.isNoteActive());
+}
+
+void test_typed_note_event_channel_is_currently_ignored() {
+  MonophonicInstrument instrument;
+
+  instrument.handleNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
+  const VoiceAction action =
+      instrument.handleNoteEvent({NoteEventType::NoteOff, 16, 60, 0});
+
+  assertVoiceAction(action, VoiceActionType::StopNote, 60);
+  TEST_ASSERT_FALSE(instrument.isNoteActive());
+}
+
 void test_stop_all_silences_active_note_and_clears_held_notes() {
   MonophonicInstrument instrument;
 
@@ -146,6 +190,35 @@ void test_stop_all_silences_active_note_and_clears_held_notes() {
 
   const VoiceAction noteOffAction = instrument.noteOff(60);
   assertVoiceAction(noteOffAction, VoiceActionType::None, 0);
+  TEST_ASSERT_FALSE(instrument.isNoteActive());
+}
+
+void test_over_capacity_discards_oldest_held_note() {
+  MonophonicInstrument instrument;
+
+  for (uint8_t note = 0; note <= 16; ++note) {
+    instrument.noteOn(note, 100);
+  }
+
+  TEST_ASSERT_TRUE(instrument.isNoteActive());
+  TEST_ASSERT_EQUAL_UINT8(16, instrument.midiNoteNumber());
+
+  for (uint8_t note = 16; note >= 1; --note) {
+    const VoiceAction action = instrument.noteOff(note);
+    const uint8_t expectedNextNote = note - 1;
+
+    if (note > 1) {
+      assertVoiceAction(action, VoiceActionType::StartNote, expectedNextNote);
+      TEST_ASSERT_TRUE(instrument.isNoteActive());
+      TEST_ASSERT_EQUAL_UINT8(expectedNextNote, instrument.midiNoteNumber());
+    } else {
+      assertVoiceAction(action, VoiceActionType::StopNote, 1);
+      TEST_ASSERT_FALSE(instrument.isNoteActive());
+    }
+  }
+
+  const VoiceAction discardedNoteOffAction = instrument.noteOff(0);
+  assertVoiceAction(discardedNoteOffAction, VoiceActionType::None, 0);
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
@@ -186,7 +259,12 @@ int main(int, char**) {
   RUN_TEST(test_repeated_note_on_does_not_leave_duplicate_held_note);
   RUN_TEST(test_midi_note_zero_is_valid);
   RUN_TEST(test_note_on_with_zero_velocity_is_note_off);
+  RUN_TEST(test_typed_note_on_event_starts_note);
+  RUN_TEST(test_typed_note_off_event_stops_matching_note);
+  RUN_TEST(test_typed_note_on_event_with_zero_velocity_is_note_off);
+  RUN_TEST(test_typed_note_event_channel_is_currently_ignored);
   RUN_TEST(test_stop_all_silences_active_note_and_clears_held_notes);
+  RUN_TEST(test_over_capacity_discards_oldest_held_note);
   RUN_TEST(test_frequency_and_name_follow_active_note);
   RUN_TEST(test_waveform_toggle_alternates_between_saw_and_square);
   return UNITY_END();

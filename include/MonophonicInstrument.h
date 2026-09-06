@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "NoteEvent.h"
 #include "ToneWaveform.h"
 
 enum class VoiceActionType : uint8_t {
@@ -32,6 +33,7 @@ public:
 
   VoiceAction noteOn(uint8_t midiNoteNumber, uint8_t velocity);
   VoiceAction noteOff(uint8_t midiNoteNumber);
+  VoiceAction handleNoteEvent(const NoteEvent& event);
   VoiceAction stopAll();
 
   ToneWaveform waveform() const;
@@ -39,6 +41,8 @@ public:
   void selectNextWaveform();
 
 private:
+  // Fixed capacity keeps the event path allocation-free. If more notes are
+  // held, the oldest held note is discarded and recent priority is preserved.
   static constexpr size_t MAX_HELD_NOTES = 16;
 
   VoiceAction startAction(uint8_t midiNoteNumber) const;

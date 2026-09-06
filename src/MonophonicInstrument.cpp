@@ -59,6 +59,17 @@ VoiceAction MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
   return startAction(activeMidiNote_);
 }
 
+VoiceAction MonophonicInstrument::handleNoteEvent(const NoteEvent& event) {
+  switch (event.type) {
+    case NoteEventType::NoteOn:
+      return noteOn(event.note, event.velocity);
+    case NoteEventType::NoteOff:
+      return noteOff(event.note);
+  }
+
+  return {VoiceActionType::None, 0};
+}
+
 VoiceAction MonophonicInstrument::stopAll() {
   if (!noteActive_) {
     heldNoteCount_ = 0;
