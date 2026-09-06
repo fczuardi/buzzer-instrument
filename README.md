@@ -41,7 +41,13 @@ M5Unified's `M5.Speaker` API.
 ## Commands
 
 ```bash
+env PLATFORMIO_CORE_DIR=.platformio-home pio test -e native
 env PLATFORMIO_CORE_DIR=.platformio-home pio run
 env PLATFORMIO_CORE_DIR=.platformio-home pio run --target upload
 env PLATFORMIO_CORE_DIR=.platformio-home pio device monitor
 ```
+
+## CI
+
+GitHub Actions runs native tests and the M5StickC Plus2 firmware build on pushes
+and pull requests. The workflow lives at `.github/workflows/ci.yml`.
