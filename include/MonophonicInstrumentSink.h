@@ -15,6 +15,7 @@ public:
       VoiceOutput& voiceOutput);
 
   void onNoteEvent(const NoteEvent& event) override;
+  void onPitchBendEvent(const PitchBendEvent& event) override;
   void onDisconnected() override;
 
   // Silence all held note state and physical output immediately.

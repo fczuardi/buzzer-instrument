@@ -132,6 +132,21 @@ void test_panic_stops_output_and_clears_held_notes_without_disconnect() {
   TEST_ASSERT_EQUAL_UINT8(1, output.stopCount);
 }
 
+void test_pitch_bend_event_is_accepted_without_changing_output_yet() {
+  MonophonicInstrument instrument;
+  CapturingVoiceOutput output;
+  MonophonicInstrumentSink sink(instrument, output);
+
+  sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
+  sink.onPitchBendEvent({1, 2048});
+
+  TEST_ASSERT_TRUE(output.isPlaying());
+  TEST_ASSERT_EQUAL_UINT8(1, output.startCount);
+  TEST_ASSERT_EQUAL_UINT8(60, output.lastMidiNote);
+  TEST_ASSERT_EQUAL_UINT8(100, output.lastVelocity);
+  TEST_ASSERT_EQUAL_UINT8(0, output.stopCount);
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_note_on_starts_voice_with_instrument_waveform);
@@ -141,5 +156,6 @@ int main(int, char**) {
   RUN_TEST(test_disconnected_stops_output_and_clears_held_notes);
   RUN_TEST(test_disconnected_stops_output_even_when_instrument_is_idle);
   RUN_TEST(test_panic_stops_output_and_clears_held_notes_without_disconnect);
+  RUN_TEST(test_pitch_bend_event_is_accepted_without_changing_output_yet);
   return UNITY_END();
 }

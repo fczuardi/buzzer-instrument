@@ -10,6 +10,11 @@ void MonophonicInstrumentSink::onNoteEvent(const NoteEvent& event) {
   applyVoiceAction(instrument_.handleNoteEvent(event));
 }
 
+void MonophonicInstrumentSink::onPitchBendEvent(const PitchBendEvent&) {
+  // Pitch bend is part of the shared instrument boundary, but this first
+  // monophonic buzzer implementation does not apply it to frequency yet.
+}
+
 void MonophonicInstrumentSink::onDisconnected() {
   panic();
 }
