@@ -110,6 +110,21 @@ void test_disconnected_stops_output_even_when_instrument_is_idle() {
   TEST_ASSERT_EQUAL_UINT8(1, output.stopCount);
 }
 
+void test_panic_stops_output_and_clears_held_notes_without_disconnect() {
+  MonophonicInstrument instrument;
+  CapturingVoiceOutput output;
+  MonophonicInstrumentSink sink(instrument, output);
+
+  sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
+  sink.onNoteEvent({NoteEventType::NoteOn, 1, 64, 100});
+  sink.panic();
+  sink.onNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
+
+  TEST_ASSERT_FALSE(output.isPlaying());
+  TEST_ASSERT_FALSE(instrument.isNoteActive());
+  TEST_ASSERT_EQUAL_UINT8(1, output.stopCount);
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_note_on_starts_voice_with_instrument_waveform);
@@ -118,5 +133,6 @@ int main(int, char**) {
   RUN_TEST(test_note_off_for_non_current_note_does_not_touch_output);
   RUN_TEST(test_disconnected_stops_output_and_clears_held_notes);
   RUN_TEST(test_disconnected_stops_output_even_when_instrument_is_idle);
+  RUN_TEST(test_panic_stops_output_and_clears_held_notes_without_disconnect);
   return UNITY_END();
 }

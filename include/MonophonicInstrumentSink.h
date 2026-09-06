@@ -17,6 +17,12 @@ public:
   void onNoteEvent(const NoteEvent& event) override;
   void onDisconnected() override;
 
+  // Silence all held note state and physical output immediately.
+  //
+  // This is useful for local panic controls. It is intentionally separate from
+  // onDisconnected() because a panic action does not imply a transport event.
+  void panic();
+
 private:
   void applyVoiceAction(const VoiceAction& action);
 

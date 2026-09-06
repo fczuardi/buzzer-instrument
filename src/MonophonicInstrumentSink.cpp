@@ -11,6 +11,10 @@ void MonophonicInstrumentSink::onNoteEvent(const NoteEvent& event) {
 }
 
 void MonophonicInstrumentSink::onDisconnected() {
+  panic();
+}
+
+void MonophonicInstrumentSink::panic() {
   instrument_.stopAll();
   voiceOutput_.stopNote();
 }
