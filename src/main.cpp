@@ -3,6 +3,7 @@
 
 #include "MidiNote.h"
 #include "MonophonicInstrument.h"
+#include "MonophonicInstrumentSink.h"
 #include "SpeakerToneOutput.h"
 
 namespace {
@@ -12,6 +13,7 @@ constexpr uint8_t DEFAULT_TEST_VELOCITY = 100;
 
 MonophonicInstrument instrument;
 SpeakerToneOutput speakerToneOutput;
+MonophonicInstrumentSink instrumentSink(instrument, speakerToneOutput);
 bool tonePlaying = false;
 uint32_t lastUptimeLogAtMs = 0;
 
@@ -96,16 +98,22 @@ void stopTone(const char* reason) {
   drawInstrumentState("idle");
 }
 
-void handleVoiceAction(const VoiceAction& action) {
-  switch (action.type) {
-    case VoiceActionType::None:
-      return;
-    case VoiceActionType::StartNote:
-      startNote(action.midiNote);
-      return;
-    case VoiceActionType::StopNote:
-      stopTone("note_off");
-      return;
+void dispatchLocalNoteEvent(const NoteEvent& event) {
+  instrumentSink.onNoteEvent(event);
+  tonePlaying = speakerToneOutput.isPlaying();
+
+  Serial.printf(
+      "buzzer: note_event type=%s channel=%u note=%u velocity=%u playing=%s\n",
+      event.type == NoteEventType::NoteOn ? "note_on" : "note_off",
+      event.channel,
+      event.note,
+      event.velocity,
+      tonePlaying ? "true" : "false");
+
+  if (tonePlaying) {
+    drawToneState(instrument.midiNoteNumber(), "playing");
+  } else {
+    drawInstrumentState("idle");
   }
 }
 }
@@ -148,7 +156,7 @@ void loop() {
         MonophonicInstrument::DEFAULT_TEST_NOTE,
         DEFAULT_TEST_VELOCITY,
     };
-    handleVoiceAction(instrument.handleNoteEvent(event));
+    dispatchLocalNoteEvent(event);
   }
 
   if (M5.BtnA.wasReleased()) {
@@ -158,7 +166,7 @@ void loop() {
         MonophonicInstrument::DEFAULT_TEST_NOTE,
         0,
     };
-    handleVoiceAction(instrument.handleNoteEvent(event));
+    dispatchLocalNoteEvent(event);
   }
 
   if (M5.BtnB.wasClicked()) {

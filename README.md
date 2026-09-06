@@ -33,11 +33,11 @@ The broader context and provisional architecture are documented in [embedded-mus
 ## Current slice
 
 The current firmware is a monophonic note-event smoke test.
-`MonophonicInstrument` accepts typed `NoteEvent` values and tracks held notes
-with last-note priority. `SpeakerToneOutput` implements the hardware-neutral
-`VoiceOutput` interface and renders the active note through M5Unified's
-`M5.Speaker` API. Button A simulates a C4 note while pressed, and Button B
-toggles `sq32`/`saw32`.
+`InstrumentEventSink` accepts typed `NoteEvent` values from local or future
+external producers. `MonophonicInstrument` tracks held notes with last-note
+priority, and `SpeakerToneOutput` implements the hardware-neutral `VoiceOutput`
+interface that renders the active note through M5Unified's `M5.Speaker` API.
+Button A simulates a C4 note while pressed, and Button B toggles `sq32`/`saw32`.
 
 ## Commands
 
