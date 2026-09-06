@@ -1,12 +1,13 @@
 #include "SpeakerToneOutput.h"
 
+#include <cstddef>
+
 #include <Arduino.h>
 #include <M5Unified.h>
 
 namespace {
 struct WaveformDefinition {
-  SpeakerToneOutput::Waveform waveform;
-  const char* name;
+  ToneWaveform waveform;
   const uint8_t* samples;
   size_t sampleCount;
 };
@@ -26,11 +27,11 @@ constexpr uint8_t SAW_WAVE_32[] = {
 };
 
 constexpr WaveformDefinition WAVEFORMS[] = {
-    {SpeakerToneOutput::Waveform::Square32, "sq32", SQUARE_WAVE_32, sizeof(SQUARE_WAVE_32)},
-    {SpeakerToneOutput::Waveform::Saw32, "saw32", SAW_WAVE_32, sizeof(SAW_WAVE_32)},
+    {ToneWaveform::Square32, SQUARE_WAVE_32, sizeof(SQUARE_WAVE_32)},
+    {ToneWaveform::Saw32, SAW_WAVE_32, sizeof(SAW_WAVE_32)},
 };
 
-const WaveformDefinition& waveformDefinition(SpeakerToneOutput::Waveform waveform) {
+const WaveformDefinition& waveformDefinition(ToneWaveform waveform) {
   for (const WaveformDefinition& definition : WAVEFORMS) {
     if (definition.waveform == waveform) {
       return definition;
@@ -96,14 +97,14 @@ bool SpeakerToneOutput::isPlaying() const {
   return playing_;
 }
 
-void SpeakerToneOutput::setWaveform(Waveform waveform) {
+void SpeakerToneOutput::setWaveform(ToneWaveform waveform) {
   waveform_ = waveform;
 }
 
-SpeakerToneOutput::Waveform SpeakerToneOutput::waveform() const {
+ToneWaveform SpeakerToneOutput::waveform() const {
   return waveform_;
 }
 
 const char* SpeakerToneOutput::waveformName() const {
-  return waveformDefinition(waveform_).name;
+  return toneWaveformName(waveform_);
 }

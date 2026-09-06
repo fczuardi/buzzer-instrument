@@ -32,12 +32,11 @@ The broader context and provisional architecture are documented in [embedded-mus
 
 ## Current slice
 
-The current firmware is a note-frequency and waveform smoke test. It starts on
-C3, advances through a C major scale up to C7 with Button A, cycles `sq32`,
-and `saw32` with Button B, and resets to C3 when Button A is held. Each
-navigation action plays the selected note for 300 ms. Frequencies are
-calculated from MIDI note numbers and sent to M5Unified's `M5.Speaker` API with
-conservative gain settings chosen from hardware testing.
+The current firmware is a monophonic note-event smoke test.
+`MonophonicInstrument` accepts MIDI-like `noteOn()` and `noteOff()` calls and
+tracks one active note at a time. Button A simulates a C4 note while pressed,
+Button B toggles `sq32`/`saw32`, and the active note is rendered through
+M5Unified's `M5.Speaker` API.
 
 ## Commands
 

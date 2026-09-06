@@ -1,86 +1,16 @@
 #include <Arduino.h>
 #include <M5Unified.h>
 
-#include "MidiNote.h"
+#include "MonophonicInstrument.h"
 #include "SpeakerToneOutput.h"
 
 namespace {
-constexpr uint32_t SMOKE_TEST_DURATION_MS = 300;
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
-constexpr uint8_t C_MAJOR_SCALE_NOTES[] = {
-    48,  // C3
-    50,  // D3
-    52,  // E3
-    53,  // F3
-    55,  // G3
-    57,  // A3
-    59,  // B3
-    60,  // C4
-    62,  // D4
-    64,  // E4
-    65,  // F4
-    67,  // G4
-    69,  // A4
-    71,  // B4
-    72,  // C5
-    74,  // D5
-    76,  // E5
-    77,  // F5
-    79,  // G5
-    81,  // A5
-    83,  // B5
-    84,  // C6
-    86,  // D6
-    88,  // E6
-    89,  // F6
-    91,  // G6
-    93,  // A6
-    95,  // B6
-    96,  // C7
-};
 
+MonophonicInstrument instrument;
 SpeakerToneOutput speakerToneOutput;
 bool tonePlaying = false;
-size_t selectedScaleIndex = 0;
-uint32_t toneStartedAtMs = 0;
 uint32_t lastUptimeLogAtMs = 0;
-
-size_t scaleNoteCount() {
-  return sizeof(C_MAJOR_SCALE_NOTES) / sizeof(C_MAJOR_SCALE_NOTES[0]);
-}
-
-uint8_t selectedMidiNoteNumber() {
-  return C_MAJOR_SCALE_NOTES[selectedScaleIndex];
-}
-
-void selectedNoteName(char* output, size_t outputSize) {
-  midiNoteName(selectedMidiNoteNumber(), output, outputSize);
-}
-
-float selectedFrequencyHz() {
-  return midiNoteToFrequencyHz(selectedMidiNoteNumber());
-}
-
-void resetToFirstNote() {
-  selectedScaleIndex = 0;
-}
-
-void advanceScaleDegree() {
-  selectedScaleIndex = (selectedScaleIndex + 1) % scaleNoteCount();
-}
-
-void selectNextWaveform() {
-  using Waveform = SpeakerToneOutput::Waveform;
-
-  switch (speakerToneOutput.waveform()) {
-    case Waveform::Square32:
-      speakerToneOutput.setWaveform(Waveform::Saw32);
-      break;
-    case Waveform::Saw32:
-      speakerToneOutput.setWaveform(Waveform::Square32);
-      break;
-  }
-}
 
 void drawStaticScreen() {
   M5.Display.fillScreen(TFT_BLACK);
@@ -91,11 +21,11 @@ void drawStaticScreen() {
 
   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
   M5.Display.setTextSize(1);
-  M5.Display.println("MIDI note frequency test");
+  M5.Display.println("MIDI-like note event test");
   M5.Display.println();
-  M5.Display.println("BtnA: next note");
+  M5.Display.println("BtnA: C4 note on/off");
   M5.Display.println("BtnB: waveform");
-  M5.Display.println("Hold A: C3");
+  M5.Display.println("MIDI-like event test");
 }
 
 void drawToneState(const char* stateLabel) {
@@ -112,39 +42,42 @@ void drawToneState(const char* stateLabel) {
   M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
   M5.Display.setTextSize(1);
   char noteName[5];
-  selectedNoteName(noteName, sizeof(noteName));
+  instrument.noteName(noteName, sizeof(noteName));
 
   M5.Display.println("Output: M5.Speaker");
   M5.Display.print("Wave: ");
-  M5.Display.println(speakerToneOutput.waveformName());
+  M5.Display.println(instrument.waveformName());
   M5.Display.printf(
       "Note: %s (%u)\n",
       noteName,
-      selectedMidiNoteNumber());
+      instrument.midiNoteNumber());
   M5.Display.print("Freq: ");
-  M5.Display.print(selectedFrequencyHz(), 2);
+  M5.Display.print(instrument.frequencyHz(), 2);
   M5.Display.println(" Hz");
   M5.Display.print("State: ");
-  M5.Display.print(stateLabel);
+  M5.Display.println(stateLabel);
 }
 
-void startSelectedNote() {
-  char noteName[5];
-  selectedNoteName(noteName, sizeof(noteName));
+void startActiveNote() {
+  if (!instrument.isNoteActive()) {
+    return;
+  }
 
-  const float frequencyHz = selectedFrequencyHz();
+  char noteName[5];
+  instrument.noteName(noteName, sizeof(noteName));
+
+  speakerToneOutput.setWaveform(instrument.waveform());
+  const float frequencyHz = instrument.frequencyHz();
   const bool toneStarted = speakerToneOutput.startTone(frequencyHz);
   tonePlaying = toneStarted;
-  toneStartedAtMs = millis();
 
   Serial.printf(
-      "buzzer: tone_start ok=%s backend=m5speaker waveform=%s note=%s midi_note=%u frequency_hz=%.2f duration_ms=%lu\n",
+      "buzzer: tone_start ok=%s backend=m5speaker waveform=%s note=%s midi_note=%u frequency_hz=%.2f\n",
       toneStarted ? "true" : "false",
       speakerToneOutput.waveformName(),
       noteName,
-      selectedMidiNoteNumber(),
-      frequencyHz,
-      SMOKE_TEST_DURATION_MS);
+      instrument.midiNoteNumber(),
+      frequencyHz);
   drawToneState(toneStarted ? "playing" : "failed");
 }
 
@@ -176,6 +109,7 @@ void setup() {
   M5.Display.setBrightness(96);
 
   speakerToneOutput.begin();
+  speakerToneOutput.setWaveform(instrument.waveform());
 
   Serial.println();
   Serial.println("M5StickC Plus2 buzzer instrument");
@@ -187,38 +121,42 @@ void setup() {
 
   drawStaticScreen();
   drawToneState("idle");
-  startSelectedNote();
 }
 
 void loop() {
   M5.update();
 
-  if (M5.BtnA.wasHold()) {
-    stopTone("reset_to_c3");
-    resetToFirstNote();
-    startSelectedNote();
-  } else if (M5.BtnA.wasClicked()) {
-    stopTone("advance_scale_degree");
-    advanceScaleDegree();
-    startSelectedNote();
+  if (M5.BtnA.wasPressed()) {
+    instrument.noteOn(MonophonicInstrument::DEFAULT_TEST_NOTE, 100);
+    startActiveNote();
+  }
+
+  if (M5.BtnA.wasReleased()) {
+    instrument.noteOff(MonophonicInstrument::DEFAULT_TEST_NOTE);
+    stopTone("note_off");
   }
 
   if (M5.BtnB.wasClicked()) {
-    stopTone("next_waveform");
-    selectNextWaveform();
+    const bool wasPlaying = tonePlaying;
+    if (wasPlaying) {
+      stopTone("next_waveform");
+    }
+
+    instrument.selectNextWaveform();
     char noteName[5];
-    selectedNoteName(noteName, sizeof(noteName));
+    instrument.noteName(noteName, sizeof(noteName));
     Serial.printf(
         "buzzer: waveform_selected waveform=%s note=%s midi_note=%u frequency_hz=%.2f\n",
-        speakerToneOutput.waveformName(),
+        instrument.waveformName(),
         noteName,
-        selectedMidiNoteNumber(),
-        selectedFrequencyHz());
-    startSelectedNote();
-  }
+        instrument.midiNoteNumber(),
+        instrument.frequencyHz());
 
-  if (tonePlaying && millis() - toneStartedAtMs >= SMOKE_TEST_DURATION_MS) {
-    stopTone("duration_elapsed");
+    if (wasPlaying) {
+      startActiveNote();
+    } else {
+      drawToneState("idle");
+    }
   }
 
   const uint32_t nowMs = millis();
