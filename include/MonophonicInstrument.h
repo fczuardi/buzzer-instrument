@@ -15,6 +15,7 @@ enum class VoiceActionType : uint8_t {
 struct VoiceAction {
   VoiceActionType type;
   uint8_t midiNote;
+  uint8_t velocity;
 };
 
 // Owns the musical state for the current one-note instrument experiment.
@@ -45,15 +46,21 @@ private:
   // held, the oldest held note is discarded and recent priority is preserved.
   static constexpr size_t MAX_HELD_NOTES = 16;
 
-  VoiceAction startAction(uint8_t midiNoteNumber) const;
+  struct HeldNote {
+    uint8_t midiNote = 0;
+    uint8_t velocity = 0;
+  };
+
+  VoiceAction startAction(uint8_t midiNoteNumber, uint8_t velocity) const;
   VoiceAction stopAction(uint8_t midiNoteNumber) const;
   int heldNoteIndex(uint8_t midiNoteNumber) const;
   void removeHeldNoteAt(size_t index);
-  void pushHeldNote(uint8_t midiNoteNumber);
+  void pushHeldNote(uint8_t midiNoteNumber, uint8_t velocity);
 
   bool noteActive_ = false;
   uint8_t activeMidiNote_ = DEFAULT_TEST_NOTE;
-  uint8_t heldNotes_[MAX_HELD_NOTES] = {};
+  uint8_t activeVelocity_ = 0;
+  HeldNote heldNotes_[MAX_HELD_NOTES] = {};
   size_t heldNoteCount_ = 0;
   ToneWaveform waveform_ = ToneWaveform::Saw32;
 };

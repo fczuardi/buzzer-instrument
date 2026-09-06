@@ -30,16 +30,17 @@ VoiceAction MonophonicInstrument::noteOn(
     removeHeldNoteAt(static_cast<size_t>(existingIndex));
   }
 
-  pushHeldNote(midiNoteNumber);
+  pushHeldNote(midiNoteNumber, velocity);
   activeMidiNote_ = midiNoteNumber;
+  activeVelocity_ = velocity;
   noteActive_ = true;
-  return startAction(midiNoteNumber);
+  return startAction(midiNoteNumber, velocity);
 }
 
 VoiceAction MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
   const int existingIndex = heldNoteIndex(midiNoteNumber);
   if (existingIndex < 0) {
-    return {VoiceActionType::None, 0};
+    return {VoiceActionType::None, 0, 0};
   }
 
   const bool removingActiveNote =
@@ -47,16 +48,19 @@ VoiceAction MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
   removeHeldNoteAt(static_cast<size_t>(existingIndex));
 
   if (!removingActiveNote) {
-    return {VoiceActionType::None, 0};
+    return {VoiceActionType::None, 0, 0};
   }
 
   if (heldNoteCount_ == 0) {
     noteActive_ = false;
+    activeVelocity_ = 0;
     return stopAction(midiNoteNumber);
   }
 
-  activeMidiNote_ = heldNotes_[heldNoteCount_ - 1];
-  return startAction(activeMidiNote_);
+  const HeldNote& previousNote = heldNotes_[heldNoteCount_ - 1];
+  activeMidiNote_ = previousNote.midiNote;
+  activeVelocity_ = previousNote.velocity;
+  return startAction(activeMidiNote_, activeVelocity_);
 }
 
 VoiceAction MonophonicInstrument::handleNoteEvent(const NoteEvent& event) {
@@ -67,17 +71,19 @@ VoiceAction MonophonicInstrument::handleNoteEvent(const NoteEvent& event) {
       return noteOff(event.note);
   }
 
-  return {VoiceActionType::None, 0};
+  return {VoiceActionType::None, 0, 0};
 }
 
 VoiceAction MonophonicInstrument::stopAll() {
   if (!noteActive_) {
     heldNoteCount_ = 0;
-    return {VoiceActionType::None, 0};
+    activeVelocity_ = 0;
+    return {VoiceActionType::None, 0, 0};
   }
 
   const uint8_t stoppedNote = activeMidiNote_;
   noteActive_ = false;
+  activeVelocity_ = 0;
   heldNoteCount_ = 0;
   return stopAction(stoppedNote);
 }
@@ -101,17 +107,19 @@ void MonophonicInstrument::selectNextWaveform() {
   }
 }
 
-VoiceAction MonophonicInstrument::startAction(uint8_t midiNoteNumber) const {
-  return {VoiceActionType::StartNote, midiNoteNumber};
+VoiceAction MonophonicInstrument::startAction(
+    uint8_t midiNoteNumber,
+    uint8_t velocity) const {
+  return {VoiceActionType::StartNote, midiNoteNumber, velocity};
 }
 
 VoiceAction MonophonicInstrument::stopAction(uint8_t midiNoteNumber) const {
-  return {VoiceActionType::StopNote, midiNoteNumber};
+  return {VoiceActionType::StopNote, midiNoteNumber, 0};
 }
 
 int MonophonicInstrument::heldNoteIndex(uint8_t midiNoteNumber) const {
   for (size_t i = 0; i < heldNoteCount_; ++i) {
-    if (heldNotes_[i] == midiNoteNumber) {
+    if (heldNotes_[i].midiNote == midiNoteNumber) {
       return static_cast<int>(i);
     }
   }
@@ -131,11 +139,14 @@ void MonophonicInstrument::removeHeldNoteAt(size_t index) {
   --heldNoteCount_;
 }
 
-void MonophonicInstrument::pushHeldNote(uint8_t midiNoteNumber) {
+void MonophonicInstrument::pushHeldNote(
+    uint8_t midiNoteNumber,
+    uint8_t velocity) {
   if (heldNoteCount_ == MAX_HELD_NOTES) {
     removeHeldNoteAt(0);
   }
 
-  heldNotes_[heldNoteCount_] = midiNoteNumber;
+  heldNotes_[heldNoteCount_].midiNote = midiNoteNumber;
+  heldNotes_[heldNoteCount_].velocity = velocity;
   ++heldNoteCount_;
 }

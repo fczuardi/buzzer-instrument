@@ -53,7 +53,7 @@ void SpeakerToneOutput::begin() {
   M5.Speaker.config(config);
 
   M5.Speaker.begin();
-  M5.Speaker.setVolume(SPEAKER_VOLUME);
+  M5.Speaker.setVolume(volume_);
   initialized_ = true;
   playing_ = false;
 }
@@ -86,8 +86,12 @@ bool SpeakerToneOutput::startTone(float frequencyHz) {
   return toneStarted;
 }
 
-bool SpeakerToneOutput::startNote(uint8_t midiNote, ToneWaveform waveform) {
+bool SpeakerToneOutput::startNote(
+    uint8_t midiNote,
+    ToneWaveform waveform,
+    uint8_t velocity) {
   setWaveform(waveform);
+  setVolume(volumeForVelocity(velocity));
   return startTone(midiNoteToFrequencyHz(midiNote));
 }
 
@@ -98,6 +102,24 @@ void SpeakerToneOutput::stop() {
 
   M5.Speaker.stop(SPEAKER_CHANNEL);
   playing_ = false;
+}
+
+void SpeakerToneOutput::setVolume(uint8_t volume) {
+  volume_ = volume;
+  if (initialized_) {
+    M5.Speaker.setVolume(volume_);
+  }
+}
+
+uint8_t SpeakerToneOutput::volume() const {
+  return volume_;
+}
+
+uint8_t SpeakerToneOutput::volumeForVelocity(uint8_t velocity) {
+  return MIN_VELOCITY_VOLUME +
+      ((static_cast<uint16_t>(velocity) *
+        (MAX_VELOCITY_VOLUME - MIN_VELOCITY_VOLUME)) /
+       127);
 }
 
 void SpeakerToneOutput::stopNote() {

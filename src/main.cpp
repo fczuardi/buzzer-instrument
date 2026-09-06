@@ -9,12 +9,13 @@
 namespace {
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
 constexpr uint8_t DEFAULT_TEST_CHANNEL = 1;
-constexpr uint8_t DEFAULT_TEST_VELOCITY = 100;
+constexpr uint8_t TEST_VELOCITY_LEVELS[] = {1, 32, 64, 96, 127};
 
 MonophonicInstrument instrument;
 SpeakerToneOutput speakerToneOutput;
 MonophonicInstrumentSink instrumentSink(instrument, speakerToneOutput);
 bool tonePlaying = false;
+size_t selectedVelocityIndex = 3;
 uint32_t lastUptimeLogAtMs = 0;
 
 void drawStaticScreen() {
@@ -29,7 +30,7 @@ void drawStaticScreen() {
   M5.Display.println("MIDI-like note event test");
   M5.Display.println();
   M5.Display.println("BtnA: C4 note on/off");
-  M5.Display.println("BtnB: waveform");
+  M5.Display.println("BtnB: velocity");
 }
 
 void drawToneState(uint8_t midiNote, const char* stateLabel) {
@@ -51,6 +52,12 @@ void drawToneState(uint8_t midiNote, const char* stateLabel) {
   M5.Display.println("Output: M5.Speaker");
   M5.Display.print("Wave: ");
   M5.Display.println(instrument.waveformName());
+  M5.Display.print("Vel: ");
+  M5.Display.println(TEST_VELOCITY_LEVELS[selectedVelocityIndex]);
+  M5.Display.print("Vol: ");
+  M5.Display.println(
+      SpeakerToneOutput::volumeForVelocity(
+          TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
   M5.Display.printf(
       "Note: %s (%u)\n",
       noteName,
@@ -72,7 +79,10 @@ void startNote(uint8_t midiNote) {
 
   const float frequencyHz = midiNoteToFrequencyHz(midiNote);
   const bool toneStarted =
-      speakerToneOutput.startNote(midiNote, instrument.waveform());
+      speakerToneOutput.startNote(
+          midiNote,
+          instrument.waveform(),
+          TEST_VELOCITY_LEVELS[selectedVelocityIndex]);
   tonePlaying = toneStarted;
 
   Serial.printf(
@@ -132,6 +142,9 @@ void setup() {
   M5.Display.setBrightness(96);
 
   speakerToneOutput.begin();
+  speakerToneOutput.setVolume(
+      SpeakerToneOutput::volumeForVelocity(
+          TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
   speakerToneOutput.setWaveform(instrument.waveform());
 
   Serial.println();
@@ -139,7 +152,8 @@ void setup() {
   Serial.println("Firmware booted");
   Serial.printf("board_id=%d\n", static_cast<int>(M5.getBoard()));
   Serial.printf(
-      "buzzer: backend=m5speaker pin=2 volume=128 magnification=32 sample_rate_hz=48000 waveform=%s\n",
+      "buzzer: backend=m5speaker pin=2 volume=%u magnification=32 sample_rate_hz=48000 waveform=%s\n",
+      speakerToneOutput.volume(),
       speakerToneOutput.waveformName());
 
   drawStaticScreen();
@@ -154,7 +168,7 @@ void loop() {
         NoteEventType::NoteOn,
         DEFAULT_TEST_CHANNEL,
         MonophonicInstrument::DEFAULT_TEST_NOTE,
-        DEFAULT_TEST_VELOCITY,
+        TEST_VELOCITY_LEVELS[selectedVelocityIndex],
     };
     dispatchLocalNoteEvent(event);
   }
@@ -175,11 +189,19 @@ void loop() {
       stopTone("next_waveform");
     }
 
-    instrument.selectNextWaveform();
+    selectedVelocityIndex =
+        (selectedVelocityIndex + 1) %
+        (sizeof(TEST_VELOCITY_LEVELS) / sizeof(TEST_VELOCITY_LEVELS[0]));
+    speakerToneOutput.setVolume(
+        SpeakerToneOutput::volumeForVelocity(
+            TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
     char noteName[5];
     instrument.noteName(noteName, sizeof(noteName));
     Serial.printf(
-        "buzzer: waveform_selected waveform=%s note=%s midi_note=%u frequency_hz=%.2f\n",
+        "buzzer: velocity_selected velocity=%u mapped_volume=%u waveform=%s note=%s midi_note=%u frequency_hz=%.2f\n",
+        TEST_VELOCITY_LEVELS[selectedVelocityIndex],
+        SpeakerToneOutput::volumeForVelocity(
+            TEST_VELOCITY_LEVELS[selectedVelocityIndex]),
         instrument.waveformName(),
         noteName,
         instrument.midiNoteNumber(),

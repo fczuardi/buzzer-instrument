@@ -24,7 +24,10 @@ void MonophonicInstrumentSink::applyVoiceAction(const VoiceAction& action) {
     case VoiceActionType::None:
       return;
     case VoiceActionType::StartNote:
-      voiceOutput_.startNote(action.midiNote, instrument_.waveform());
+      voiceOutput_.startNote(
+          action.midiNote,
+          instrument_.waveform(),
+          action.velocity);
       return;
     case VoiceActionType::StopNote:
       voiceOutput_.stopNote();

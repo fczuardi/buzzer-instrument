@@ -4,9 +4,13 @@
 
 class CapturingVoiceOutput : public VoiceOutput {
 public:
-  bool startNote(uint8_t midiNote, ToneWaveform waveform) override {
+  bool startNote(
+      uint8_t midiNote,
+      ToneWaveform waveform,
+      uint8_t velocity) override {
     lastMidiNote = midiNote;
     lastWaveform = waveform;
+    lastVelocity = velocity;
     playing = true;
     ++startCount;
     return true;
@@ -22,6 +26,7 @@ public:
   }
 
   uint8_t lastMidiNote = 0;
+  uint8_t lastVelocity = 0;
   ToneWaveform lastWaveform = ToneWaveform::Square32;
   bool playing = false;
   uint8_t startCount = 0;
@@ -38,6 +43,7 @@ void test_note_on_starts_voice_with_instrument_waveform() {
   TEST_ASSERT_TRUE(output.isPlaying());
   TEST_ASSERT_EQUAL_UINT8(1, output.startCount);
   TEST_ASSERT_EQUAL_UINT8(60, output.lastMidiNote);
+  TEST_ASSERT_EQUAL_UINT8(100, output.lastVelocity);
   TEST_ASSERT_EQUAL(ToneWaveform::Saw32, output.lastWaveform);
 }
 
@@ -58,13 +64,14 @@ void test_releasing_current_note_restarts_previous_held_note() {
   CapturingVoiceOutput output;
   MonophonicInstrumentSink sink(instrument, output);
 
-  sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
-  sink.onNoteEvent({NoteEventType::NoteOn, 1, 64, 100});
+  sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 70});
+  sink.onNoteEvent({NoteEventType::NoteOn, 1, 64, 110});
   sink.onNoteEvent({NoteEventType::NoteOff, 1, 64, 0});
 
   TEST_ASSERT_TRUE(output.isPlaying());
   TEST_ASSERT_EQUAL_UINT8(3, output.startCount);
   TEST_ASSERT_EQUAL_UINT8(60, output.lastMidiNote);
+  TEST_ASSERT_EQUAL_UINT8(70, output.lastVelocity);
 }
 
 void test_note_off_for_non_current_note_does_not_touch_output() {
@@ -102,7 +109,7 @@ void test_disconnected_stops_output_even_when_instrument_is_idle() {
   CapturingVoiceOutput output;
   MonophonicInstrumentSink sink(instrument, output);
 
-  output.startNote(60, ToneWaveform::Saw32);
+  output.startNote(60, ToneWaveform::Saw32, 100);
   sink.onDisconnected();
 
   TEST_ASSERT_FALSE(output.isPlaying());

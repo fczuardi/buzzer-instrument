@@ -37,7 +37,12 @@ The current firmware is a monophonic note-event smoke test.
 external producers. `MonophonicInstrument` tracks held notes with last-note
 priority, and `SpeakerToneOutput` implements the hardware-neutral `VoiceOutput`
 interface that renders the active note through M5Unified's `M5.Speaker` API.
-Button A simulates a C4 note while pressed, and Button B toggles `sq32`/`saw32`.
+Button A simulates a C4 note while pressed, and Button B cycles probe velocity
+levels so the hardware can validate the current velocity-to-volume mapping.
+
+The current hardware result suggests that volumes `64..128` are usable on the
+M5StickC Plus2 buzzer. Lower values may lose the recognizable pitch, while
+larger values become distorted.
 
 `NoteEvent` and `InstrumentEventSink` come from the shared
 `EmbeddedMusicFirmwareContracts` PlatformIO package in

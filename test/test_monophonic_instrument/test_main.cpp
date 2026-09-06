@@ -5,9 +5,11 @@
 void assertVoiceAction(
     const VoiceAction& action,
     VoiceActionType expectedType,
-    uint8_t expectedMidiNote) {
+    uint8_t expectedMidiNote,
+    uint8_t expectedVelocity = 0) {
   TEST_ASSERT_EQUAL(expectedType, action.type);
   TEST_ASSERT_EQUAL_UINT8(expectedMidiNote, action.midiNote);
+  TEST_ASSERT_EQUAL_UINT8(expectedVelocity, action.velocity);
 }
 
 void test_starts_idle_on_default_c4_with_saw_waveform() {
@@ -30,7 +32,7 @@ void test_note_on_activates_requested_note() {
   const VoiceAction action = instrument.noteOn(64, 96);
   instrument.noteName(noteName, sizeof(noteName));
 
-  assertVoiceAction(action, VoiceActionType::StartNote, 64);
+  assertVoiceAction(action, VoiceActionType::StartNote, 64, 96);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(64, instrument.midiNoteNumber());
   TEST_ASSERT_EQUAL_STRING("E4", noteName);
@@ -42,7 +44,7 @@ void test_latest_note_on_replaces_active_note() {
   instrument.noteOn(60, 90);
   const VoiceAction action = instrument.noteOn(67, 80);
 
-  assertVoiceAction(action, VoiceActionType::StartNote, 67);
+  assertVoiceAction(action, VoiceActionType::StartNote, 67, 80);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(67, instrument.midiNoteNumber());
 }
@@ -50,11 +52,11 @@ void test_latest_note_on_replaces_active_note() {
 void test_releasing_current_note_returns_to_previous_held_note() {
   MonophonicInstrument instrument;
 
-  instrument.noteOn(60, 100);
-  instrument.noteOn(64, 100);
+  instrument.noteOn(60, 72);
+  instrument.noteOn(64, 110);
   const VoiceAction action = instrument.noteOff(64);
 
-  assertVoiceAction(action, VoiceActionType::StartNote, 60);
+  assertVoiceAction(action, VoiceActionType::StartNote, 60, 72);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(60, instrument.midiNoteNumber());
 }
@@ -101,7 +103,7 @@ void test_repeated_note_on_does_not_leave_duplicate_held_note() {
   instrument.noteOn(60, 100);
   const VoiceAction action = instrument.noteOff(60);
 
-  assertVoiceAction(action, VoiceActionType::StartNote, 64);
+  assertVoiceAction(action, VoiceActionType::StartNote, 64, 100);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(64, instrument.midiNoteNumber());
 }
@@ -113,7 +115,7 @@ void test_midi_note_zero_is_valid() {
   const VoiceAction startAction = instrument.noteOn(0, 100);
   instrument.noteName(noteName, sizeof(noteName));
 
-  assertVoiceAction(startAction, VoiceActionType::StartNote, 0);
+  assertVoiceAction(startAction, VoiceActionType::StartNote, 0, 100);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(0, instrument.midiNoteNumber());
   TEST_ASSERT_EQUAL_STRING("C-1", noteName);
@@ -139,7 +141,7 @@ void test_typed_note_on_event_starts_note() {
 
   const VoiceAction action = instrument.handleNoteEvent(event);
 
-  assertVoiceAction(action, VoiceActionType::StartNote, 65);
+  assertVoiceAction(action, VoiceActionType::StartNote, 65, 88);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(65, instrument.midiNoteNumber());
 }
@@ -177,6 +179,19 @@ void test_typed_note_event_channel_is_currently_ignored() {
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
+void test_latest_velocity_is_used_for_repeated_note_on() {
+  MonophonicInstrument instrument;
+
+  instrument.noteOn(60, 40);
+  instrument.noteOn(64, 100);
+  instrument.noteOn(60, 90);
+  const VoiceAction action = instrument.noteOff(60);
+
+  assertVoiceAction(action, VoiceActionType::StartNote, 64, 100);
+  TEST_ASSERT_TRUE(instrument.isNoteActive());
+  TEST_ASSERT_EQUAL_UINT8(64, instrument.midiNoteNumber());
+}
+
 void test_stop_all_silences_active_note_and_clears_held_notes() {
   MonophonicInstrument instrument;
 
@@ -208,7 +223,7 @@ void test_over_capacity_discards_oldest_held_note() {
     const uint8_t expectedNextNote = note - 1;
 
     if (note > 1) {
-      assertVoiceAction(action, VoiceActionType::StartNote, expectedNextNote);
+      assertVoiceAction(action, VoiceActionType::StartNote, expectedNextNote, 100);
       TEST_ASSERT_TRUE(instrument.isNoteActive());
       TEST_ASSERT_EQUAL_UINT8(expectedNextNote, instrument.midiNoteNumber());
     } else {
@@ -263,6 +278,7 @@ int main(int, char**) {
   RUN_TEST(test_typed_note_off_event_stops_matching_note);
   RUN_TEST(test_typed_note_on_event_with_zero_velocity_is_note_off);
   RUN_TEST(test_typed_note_event_channel_is_currently_ignored);
+  RUN_TEST(test_latest_velocity_is_used_for_repeated_note_on);
   RUN_TEST(test_stop_all_silences_active_note_and_clears_held_notes);
   RUN_TEST(test_over_capacity_discards_oldest_held_note);
   RUN_TEST(test_frequency_and_name_follow_active_note);

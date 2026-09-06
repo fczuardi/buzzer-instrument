@@ -53,6 +53,9 @@
       "src/SpeakerToneOutput.cpp",
       "src/ToneWaveform.cpp",
       "docs/devlog/012-package-buzzer-instrument.md",
+      "docs/devlog/013-panic-api.md",
+      "docs/devlog/014-volume-probe.md",
+      "docs/devlog/015-velocity-volume-mapping.md",
       "README.md",
       "library.json"
     ]
