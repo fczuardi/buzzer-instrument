@@ -27,20 +27,17 @@ Expected structure after initialization:
 - `include/`: project headers for reusable modules.
 - `test/`: native tests for pure logic such as note-to-frequency conversion.
 - `docs/devlog/`: one Markdown chapter per implementation slice.
-- `platformio.ini`: PlatformIO environments and dependencies.
+- `platformio.ini`: PlatformIO environments, dependencies, and the shared
+  parent cache location.
 
 ## Build, Test, and Development Commands
 
 Use PlatformIO once the project is initialized:
 
-- `env PLATFORMIO_CORE_DIR=.platformio-home pio test -e native`: run native
-  tests.
-- `env PLATFORMIO_CORE_DIR=.platformio-home pio run`: build the M5StickC Plus2
-  firmware.
-- `env PLATFORMIO_CORE_DIR=.platformio-home pio run --target upload`: upload to
-  the connected device.
-- `env PLATFORMIO_CORE_DIR=.platformio-home pio device monitor`: read serial
-  output.
+- `pio test -e native`: run native tests.
+- `pio run`: build the M5StickC Plus2 firmware.
+- `pio run --target upload`: upload to the connected device.
+- `pio device monitor`: read serial output.
 
 ## Coding Style & Naming Conventions
 

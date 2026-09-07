@@ -73,11 +73,11 @@ buzzer instrument without importing this repository's local button smoke test.
 ## Commands
 
 ```bash
-env PLATFORMIO_CORE_DIR=.platformio-home pio test -e native
-env PLATFORMIO_CORE_DIR=.platformio-home pio run
-env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack . --output /tmp
-env PLATFORMIO_CORE_DIR=.platformio-home pio run --target upload
-env PLATFORMIO_CORE_DIR=.platformio-home pio device monitor
+pio test -e native
+pio run
+pio pkg pack . --output /tmp
+pio run --target upload
+pio device monitor
 ```
 
 ## CI
