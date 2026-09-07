@@ -30,7 +30,6 @@ public:
   void setVolume(uint8_t volume);
   uint8_t volume() const;
   void setVelocityVolumeRange(uint8_t minimum, uint8_t maximum);
-  void setVelocityVolumeRange(VelocityVolumeRange range);
   VelocityVolumeRange velocityVolumeRange() const;
   uint8_t volumeForVelocity(uint8_t velocity) const;
   void setWaveform(ToneWaveform waveform);
