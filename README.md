@@ -52,6 +52,16 @@ larger values become distorted. `SpeakerToneOutput::setVelocityVolumeRange()`
 allows firmware experiments to tune those limits without changing the instrument
 policy.
 
+These values are package defaults, not fixed instrument behavior:
+
+| Setting | Package default | Consumer override |
+| --- | --- | --- |
+| Velocity-to-volume range | `64..128` | `SpeakerToneOutput::setVelocityVolumeRange()` |
+| Pitch bend range | ±2 semitones | `MonophonicInstrument::setPitchBendRangeSemitones()` |
+
+A showcase or device composition can calibrate both settings for its hardware
+and musical purpose without forking or modifying this package.
+
 `NoteEvent`, `PitchBendEvent`, and `InstrumentEventSink` come from the shared
 `EmbeddedMusicFirmwareContracts` PlatformIO package in
 `embedded-music-experiments`.

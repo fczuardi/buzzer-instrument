@@ -59,6 +59,7 @@
       "docs/devlog/016-configurable-velocity-volume-range.md",
       "docs/devlog/017-pitch-bend-boundary.md",
       "docs/devlog/018-audible-pitch-bend.md",
+      "docs/devlog/019-configurable-pitch-bend-range.md",
       "README.md",
       "library.json"
     ]
