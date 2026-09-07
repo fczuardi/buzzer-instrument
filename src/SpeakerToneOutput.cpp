@@ -114,16 +114,14 @@ uint8_t SpeakerToneOutput::volume() const {
   return volume_;
 }
 
-void SpeakerToneOutput::setVelocityVolumeRange(
-    uint8_t minimum,
-    uint8_t maximum) {
-  if (minimum > maximum) {
-    const uint8_t originalMinimum = minimum;
-    minimum = maximum;
-    maximum = originalMinimum;
+void SpeakerToneOutput::setVelocityVolumeRange(VelocityVolumeRange range) {
+  if (range.minimum > range.maximum) {
+    const uint8_t originalMinimum = range.minimum;
+    range.minimum = range.maximum;
+    range.maximum = originalMinimum;
   }
 
-  velocityVolumeRange_ = {minimum, maximum};
+  velocityVolumeRange_ = range;
 }
 
 VelocityVolumeRange SpeakerToneOutput::velocityVolumeRange() const {

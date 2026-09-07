@@ -12,8 +12,7 @@ constexpr uint32_t PITCH_BEND_DEMO_HOLD_MS = 1000;
 constexpr uint32_t PITCH_BEND_DEMO_STEP_MS = 1000;
 constexpr uint8_t DEFAULT_TEST_CHANNEL = 1;
 constexpr uint8_t TEST_VELOCITY_LEVELS[] = {1, 32, 64, 96, 127};
-constexpr uint8_t TEST_VELOCITY_VOLUME_MINIMUM = 64;
-constexpr uint8_t TEST_VELOCITY_VOLUME_MAXIMUM = 128;
+constexpr VelocityVolumeRange TEST_VELOCITY_VOLUME_RANGE = {64, 128};
 constexpr int16_t PITCH_BEND_CENTER = 0;
 constexpr int16_t PITCH_BEND_MINIMUM = -8192;
 constexpr int16_t PITCH_BEND_MAXIMUM = 8191;
@@ -224,9 +223,7 @@ void setup() {
   M5.Display.setBrightness(96);
 
   speakerToneOutput.begin();
-  speakerToneOutput.setVelocityVolumeRange(
-      TEST_VELOCITY_VOLUME_MINIMUM,
-      TEST_VELOCITY_VOLUME_MAXIMUM);
+  speakerToneOutput.setVelocityVolumeRange(TEST_VELOCITY_VOLUME_RANGE);
   speakerToneOutput.setVolume(
       speakerToneOutput.volumeForVelocity(
           TEST_VELOCITY_LEVELS[selectedVelocityIndex]));
