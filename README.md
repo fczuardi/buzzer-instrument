@@ -40,9 +40,11 @@ interface that renders the active note through M5Unified's `M5.Speaker` API.
 Button A simulates a C4 note while pressed, and Button B cycles probe velocity
 levels so the hardware can validate the current velocity-to-volume mapping.
 Holding Button A for one second runs a pitch bend demo around C4.
-Incoming pitch bend events adjust the active note by up to two semitones in
-either direction, with a small center dead zone for touch-strip controllers that
-do not return exactly to zero.
+Incoming pitch bend events adjust the active note by two semitones in either
+direction by default, with a small center dead zone for touch-strip controllers
+that do not return exactly to zero. `MonophonicInstrument::setPitchBendRangeSemitones()`
+allows showcase firmware to tune that musical range without changing the
+package default.
 
 The current hardware result suggests that volumes `64..128` are usable on the
 M5StickC Plus2 buzzer. Lower values may lose the recognizable pitch, while

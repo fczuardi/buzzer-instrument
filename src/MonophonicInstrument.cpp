@@ -20,6 +20,10 @@ int16_t MonophonicInstrument::pitchBendValue() const {
   return pitchBendValue_;
 }
 
+float MonophonicInstrument::pitchBendRangeSemitones() const {
+  return pitchBendRangeSemitones_;
+}
+
 void MonophonicInstrument::noteName(char* output, size_t outputSize) const {
   midiNoteName(midiNoteNumber(), output, outputSize);
 }
@@ -107,6 +111,10 @@ VoiceAction MonophonicInstrument::stopAll() {
   return stopAction(stoppedNote);
 }
 
+void MonophonicInstrument::setPitchBendRangeSemitones(float semitones) {
+  pitchBendRangeSemitones_ = semitones < 0.0f ? 0.0f : semitones;
+}
+
 ToneWaveform MonophonicInstrument::waveform() const {
   return waveform_;
 }
@@ -152,7 +160,7 @@ float MonophonicInstrument::bentFrequencyHz(uint8_t midiNoteNumber) const {
       pitchBendValue_ > 0
           ? static_cast<float>(pitchBendValue_) / 8191.0f
           : static_cast<float>(pitchBendValue_) / 8192.0f;
-  const float semitoneOffset = bendRatio * PITCH_BEND_RANGE_SEMITONES;
+  const float semitoneOffset = bendRatio * pitchBendRangeSemitones_;
   return baseFrequencyHz * std::pow(2.0f, semitoneOffset / 12.0f);
 }
 

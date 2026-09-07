@@ -33,6 +33,7 @@ public:
   uint8_t midiNoteNumber() const;
   float frequencyHz() const;
   int16_t pitchBendValue() const;
+  float pitchBendRangeSemitones() const;
   void noteName(char* output, size_t outputSize) const;
 
   VoiceAction noteOn(uint8_t midiNoteNumber, uint8_t velocity);
@@ -40,6 +41,7 @@ public:
   VoiceAction handleNoteEvent(const NoteEvent& event);
   VoiceAction handlePitchBendEvent(const PitchBendEvent& event);
   VoiceAction stopAll();
+  void setPitchBendRangeSemitones(float semitones);
 
   ToneWaveform waveform() const;
   const char* waveformName() const;
@@ -50,7 +52,7 @@ private:
   // held, the oldest held note is discarded and recent priority is preserved.
   static constexpr size_t MAX_HELD_NOTES = 16;
   static constexpr int16_t PITCH_BEND_DEAD_ZONE = 128;
-  static constexpr float PITCH_BEND_RANGE_SEMITONES = 2.0f;
+  static constexpr float DEFAULT_PITCH_BEND_RANGE_SEMITONES = 2.0f;
 
   struct HeldNote {
     uint8_t midiNote = 0;
@@ -69,6 +71,7 @@ private:
   uint8_t activeMidiNote_ = DEFAULT_TEST_NOTE;
   uint8_t activeVelocity_ = 0;
   int16_t pitchBendValue_ = 0;
+  float pitchBendRangeSemitones_ = DEFAULT_PITCH_BEND_RANGE_SEMITONES;
   HeldNote heldNotes_[MAX_HELD_NOTES] = {};
   size_t heldNoteCount_ = 0;
   ToneWaveform waveform_ = ToneWaveform::Saw32;

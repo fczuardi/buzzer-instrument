@@ -290,6 +290,30 @@ void test_pitch_bend_minimum_lowers_two_semitones() {
   TEST_ASSERT_FLOAT_WITHIN(0.01f, midiNoteToFrequencyHz(58), instrument.frequencyHz());
 }
 
+void test_pitch_bend_range_can_be_configured() {
+  MonophonicInstrument instrument;
+
+  instrument.setPitchBendRangeSemitones(12.0f);
+  instrument.noteOn(60, 100);
+  const VoiceAction action = instrument.handlePitchBendEvent({1, 8191});
+
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, 12.0f, instrument.pitchBendRangeSemitones());
+  assertStartFrequency(action, midiNoteToFrequencyHz(72));
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, midiNoteToFrequencyHz(72), instrument.frequencyHz());
+}
+
+void test_negative_pitch_bend_range_is_clamped_to_zero() {
+  MonophonicInstrument instrument;
+
+  instrument.setPitchBendRangeSemitones(-1.0f);
+  instrument.noteOn(60, 100);
+  const VoiceAction action = instrument.handlePitchBendEvent({1, 8191});
+
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, 0.0f, instrument.pitchBendRangeSemitones());
+  assertStartFrequency(action, midiNoteToFrequencyHz(60));
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, midiNoteToFrequencyHz(60), instrument.frequencyHz());
+}
+
 void test_pitch_bend_dead_zone_treats_near_center_as_zero() {
   MonophonicInstrument instrument;
 
@@ -359,6 +383,8 @@ int main(int, char**) {
   RUN_TEST(test_pitch_bend_zero_keeps_base_frequency);
   RUN_TEST(test_pitch_bend_maximum_raises_two_semitones);
   RUN_TEST(test_pitch_bend_minimum_lowers_two_semitones);
+  RUN_TEST(test_pitch_bend_range_can_be_configured);
+  RUN_TEST(test_negative_pitch_bend_range_is_clamped_to_zero);
   RUN_TEST(test_pitch_bend_dead_zone_treats_near_center_as_zero);
   RUN_TEST(test_pitch_bend_without_active_note_is_applied_to_next_note);
   RUN_TEST(test_stop_all_resets_pitch_bend);
