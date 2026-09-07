@@ -1,5 +1,6 @@
 #include <unity.h>
 
+#include "MidiNote.h"
 #include "MonophonicInstrument.h"
 
 void assertVoiceAction(
@@ -10,6 +11,13 @@ void assertVoiceAction(
   TEST_ASSERT_EQUAL(expectedType, action.type);
   TEST_ASSERT_EQUAL_UINT8(expectedMidiNote, action.midiNote);
   TEST_ASSERT_EQUAL_UINT8(expectedVelocity, action.velocity);
+}
+
+void assertStartFrequency(
+    const VoiceAction& action,
+    float expectedFrequencyHz) {
+  TEST_ASSERT_EQUAL(VoiceActionType::StartNote, action.type);
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, expectedFrequencyHz, action.frequencyHz);
 }
 
 void test_starts_idle_on_default_c4_with_saw_waveform() {
@@ -248,6 +256,72 @@ void test_frequency_and_name_follow_active_note() {
   TEST_ASSERT_FLOAT_WITHIN(0.01f, 440.0f, instrument.frequencyHz());
 }
 
+void test_pitch_bend_zero_keeps_base_frequency() {
+  MonophonicInstrument instrument;
+
+  const VoiceAction noteAction = instrument.noteOn(60, 100);
+  const VoiceAction bendAction = instrument.handlePitchBendEvent({1, 0});
+
+  assertStartFrequency(noteAction, midiNoteToFrequencyHz(60));
+  assertStartFrequency(bendAction, midiNoteToFrequencyHz(60));
+  TEST_ASSERT_EQUAL_INT16(0, instrument.pitchBendValue());
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, midiNoteToFrequencyHz(60), instrument.frequencyHz());
+}
+
+void test_pitch_bend_maximum_raises_two_semitones() {
+  MonophonicInstrument instrument;
+
+  instrument.noteOn(60, 100);
+  const VoiceAction action = instrument.handlePitchBendEvent({1, 8191});
+
+  TEST_ASSERT_EQUAL_INT16(8191, instrument.pitchBendValue());
+  assertStartFrequency(action, midiNoteToFrequencyHz(62));
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, midiNoteToFrequencyHz(62), instrument.frequencyHz());
+}
+
+void test_pitch_bend_minimum_lowers_two_semitones() {
+  MonophonicInstrument instrument;
+
+  instrument.noteOn(60, 100);
+  const VoiceAction action = instrument.handlePitchBendEvent({1, -8192});
+
+  TEST_ASSERT_EQUAL_INT16(-8192, instrument.pitchBendValue());
+  assertStartFrequency(action, midiNoteToFrequencyHz(58));
+  TEST_ASSERT_FLOAT_WITHIN(0.01f, midiNoteToFrequencyHz(58), instrument.frequencyHz());
+}
+
+void test_pitch_bend_dead_zone_treats_near_center_as_zero() {
+  MonophonicInstrument instrument;
+
+  instrument.noteOn(60, 100);
+  const VoiceAction action = instrument.handlePitchBendEvent({1, 64});
+
+  TEST_ASSERT_EQUAL_INT16(0, instrument.pitchBendValue());
+  assertStartFrequency(action, midiNoteToFrequencyHz(60));
+}
+
+void test_pitch_bend_without_active_note_is_applied_to_next_note() {
+  MonophonicInstrument instrument;
+
+  const VoiceAction bendAction = instrument.handlePitchBendEvent({1, 8191});
+  const VoiceAction noteAction = instrument.noteOn(60, 100);
+
+  assertVoiceAction(bendAction, VoiceActionType::None, 0);
+  assertStartFrequency(noteAction, midiNoteToFrequencyHz(62));
+}
+
+void test_stop_all_resets_pitch_bend() {
+  MonophonicInstrument instrument;
+
+  instrument.noteOn(60, 100);
+  instrument.handlePitchBendEvent({1, 8191});
+  instrument.stopAll();
+  const VoiceAction action = instrument.noteOn(60, 100);
+
+  TEST_ASSERT_EQUAL_INT16(0, instrument.pitchBendValue());
+  assertStartFrequency(action, midiNoteToFrequencyHz(60));
+}
+
 void test_waveform_toggle_alternates_between_saw_and_square() {
   MonophonicInstrument instrument;
 
@@ -282,6 +356,12 @@ int main(int, char**) {
   RUN_TEST(test_stop_all_silences_active_note_and_clears_held_notes);
   RUN_TEST(test_over_capacity_discards_oldest_held_note);
   RUN_TEST(test_frequency_and_name_follow_active_note);
+  RUN_TEST(test_pitch_bend_zero_keeps_base_frequency);
+  RUN_TEST(test_pitch_bend_maximum_raises_two_semitones);
+  RUN_TEST(test_pitch_bend_minimum_lowers_two_semitones);
+  RUN_TEST(test_pitch_bend_dead_zone_treats_near_center_as_zero);
+  RUN_TEST(test_pitch_bend_without_active_note_is_applied_to_next_note);
+  RUN_TEST(test_stop_all_resets_pitch_bend);
   RUN_TEST(test_waveform_toggle_alternates_between_saw_and_square);
   return UNITY_END();
 }

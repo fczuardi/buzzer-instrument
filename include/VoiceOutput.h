@@ -15,6 +15,7 @@ public:
 
   virtual bool startNote(
       uint8_t midiNote,
+      float frequencyHz,
       ToneWaveform waveform,
       uint8_t velocity) = 0;
   virtual void stopNote() = 0;

@@ -8,9 +8,14 @@
 
 namespace {
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
+constexpr uint32_t PITCH_BEND_DEMO_HOLD_MS = 1000;
+constexpr uint32_t PITCH_BEND_DEMO_STEP_MS = 1000;
 constexpr uint8_t DEFAULT_TEST_CHANNEL = 1;
 constexpr uint8_t TEST_VELOCITY_LEVELS[] = {1, 32, 64, 96, 127};
 constexpr VelocityVolumeRange TEST_VELOCITY_VOLUME_RANGE = {64, 128};
+constexpr int16_t PITCH_BEND_CENTER = 0;
+constexpr int16_t PITCH_BEND_MINIMUM = -8192;
+constexpr int16_t PITCH_BEND_MAXIMUM = 8191;
 
 MonophonicInstrument instrument;
 SpeakerToneOutput speakerToneOutput;
@@ -18,6 +23,10 @@ MonophonicInstrumentSink instrumentSink(instrument, speakerToneOutput);
 bool tonePlaying = false;
 size_t selectedVelocityIndex = 3;
 uint32_t lastUptimeLogAtMs = 0;
+uint32_t buttonAPressedAtMs = 0;
+uint32_t lastPitchBendDemoStepAtMs = 0;
+uint8_t pitchBendDemoStep = 0;
+bool pitchBendDemoActive = false;
 
 void drawStaticScreen() {
   M5.Display.fillScreen(TFT_BLACK);
@@ -31,6 +40,7 @@ void drawStaticScreen() {
   M5.Display.println("MIDI-like note event test");
   M5.Display.println();
   M5.Display.println("BtnA: C4 note on/off");
+  M5.Display.println("Hold A: pitch bend demo");
   M5.Display.println("BtnB: velocity");
 }
 
@@ -64,8 +74,10 @@ void drawToneState(uint8_t midiNote, const char* stateLabel) {
       noteName,
       midiNote);
   M5.Display.print("Freq: ");
-  M5.Display.print(midiNoteToFrequencyHz(midiNote), 2);
+  M5.Display.print(instrument.frequencyHz(), 2);
   M5.Display.println(" Hz");
+  M5.Display.print("Bend: ");
+  M5.Display.println(instrument.pitchBendValue());
   M5.Display.print("State: ");
   M5.Display.println(stateLabel);
 }
@@ -78,10 +90,11 @@ void startNote(uint8_t midiNote) {
   char noteName[5];
   midiNoteName(midiNote, noteName, sizeof(noteName));
 
-  const float frequencyHz = midiNoteToFrequencyHz(midiNote);
+  const float frequencyHz = instrument.frequencyHz();
   const bool toneStarted =
       speakerToneOutput.startNote(
           midiNote,
+          frequencyHz,
           instrument.waveform(),
           TEST_VELOCITY_LEVELS[selectedVelocityIndex]);
   tonePlaying = toneStarted;
@@ -127,6 +140,73 @@ void dispatchLocalNoteEvent(const NoteEvent& event) {
     drawInstrumentState("idle");
   }
 }
+
+void dispatchLocalPitchBendEvent(int16_t bendValue) {
+  const PitchBendEvent event = {
+      DEFAULT_TEST_CHANNEL,
+      bendValue,
+  };
+  instrumentSink.onPitchBendEvent(event);
+  tonePlaying = speakerToneOutput.isPlaying();
+
+  Serial.printf(
+      "buzzer: pitch_bend channel=%u value=%d frequency_hz=%.2f playing=%s\n",
+      event.channel,
+      event.value,
+      instrument.frequencyHz(),
+      tonePlaying ? "true" : "false");
+
+  if (tonePlaying) {
+    drawToneState(instrument.midiNoteNumber(), "playing");
+  } else {
+    drawInstrumentState("idle");
+  }
+}
+
+void resetPitchBendDemo() {
+  pitchBendDemoActive = false;
+  pitchBendDemoStep = 0;
+  lastPitchBendDemoStepAtMs = 0;
+}
+
+void startPitchBendDemo(uint32_t nowMs) {
+  pitchBendDemoActive = true;
+  pitchBendDemoStep = 0;
+  lastPitchBendDemoStepAtMs = nowMs;
+
+  Serial.println("buzzer: pitch_bend_demo started");
+  dispatchLocalPitchBendEvent(PITCH_BEND_CENTER);
+}
+
+void advancePitchBendDemo(uint32_t nowMs) {
+  if (!pitchBendDemoActive ||
+      nowMs - lastPitchBendDemoStepAtMs < PITCH_BEND_DEMO_STEP_MS) {
+    return;
+  }
+
+  lastPitchBendDemoStepAtMs = nowMs;
+  pitchBendDemoStep++;
+
+  switch (pitchBendDemoStep) {
+    case 1:
+      dispatchLocalPitchBendEvent(PITCH_BEND_MINIMUM);
+      break;
+    case 2:
+      dispatchLocalPitchBendEvent(PITCH_BEND_CENTER);
+      break;
+    case 3:
+      dispatchLocalPitchBendEvent(PITCH_BEND_MAXIMUM);
+      break;
+    case 4:
+      dispatchLocalPitchBendEvent(PITCH_BEND_CENTER);
+      Serial.println("buzzer: pitch_bend_demo finished");
+      resetPitchBendDemo();
+      break;
+    default:
+      resetPitchBendDemo();
+      break;
+  }
+}
 }
 
 void setup() {
@@ -164,8 +244,11 @@ void setup() {
 
 void loop() {
   M5.update();
+  const uint32_t nowMs = millis();
 
   if (M5.BtnA.wasPressed()) {
+    buttonAPressedAtMs = nowMs;
+    resetPitchBendDemo();
     const NoteEvent event = {
         NoteEventType::NoteOn,
         DEFAULT_TEST_CHANNEL,
@@ -175,7 +258,15 @@ void loop() {
     dispatchLocalNoteEvent(event);
   }
 
+  if (M5.BtnA.isHolding() &&
+      tonePlaying &&
+      !pitchBendDemoActive &&
+      nowMs - buttonAPressedAtMs >= PITCH_BEND_DEMO_HOLD_MS) {
+    startPitchBendDemo(nowMs);
+  }
+
   if (M5.BtnA.wasReleased()) {
+    resetPitchBendDemo();
     const NoteEvent event = {
         NoteEventType::NoteOff,
         DEFAULT_TEST_CHANNEL,
@@ -216,7 +307,8 @@ void loop() {
     }
   }
 
-  const uint32_t nowMs = millis();
+  advancePitchBendDemo(nowMs);
+
   if (nowMs - lastUptimeLogAtMs >= UPTIME_LOG_INTERVAL_MS) {
     lastUptimeLogAtMs = nowMs;
     Serial.printf("uptime=%lu\n", nowMs / 1000);

@@ -14,7 +14,6 @@ the BLE input and the instrument package can now compile against the same typed
 boundary, while the musical choice of how much pitch bend affects frequency is
 left for a later slice.
 
-The native test checks that a pitch bend event can arrive while a note is
-playing without stopping or restarting the current voice. The next musical step
-can store the latest bend value and apply a range such as +/-2 semitones to the
-active note frequency.
+At this point the native test checked that a pitch bend event could arrive while
+a note was playing without stopping or restarting the current voice. Slice 018
+builds on this boundary and makes pitch bend audible.

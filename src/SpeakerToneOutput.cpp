@@ -5,8 +5,6 @@
 #include <Arduino.h>
 #include <M5Unified.h>
 
-#include "MidiNote.h"
-
 namespace {
 struct WaveformDefinition {
   ToneWaveform waveform;
@@ -87,12 +85,13 @@ bool SpeakerToneOutput::startTone(float frequencyHz) {
 }
 
 bool SpeakerToneOutput::startNote(
-    uint8_t midiNote,
+    uint8_t,
+    float frequencyHz,
     ToneWaveform waveform,
     uint8_t velocity) {
   setWaveform(waveform);
   setVolume(volumeForVelocity(velocity));
-  return startTone(midiNoteToFrequencyHz(midiNote));
+  return startTone(frequencyHz);
 }
 
 void SpeakerToneOutput::stop() {

@@ -1,5 +1,7 @@
 #include "MonophonicInstrument.h"
 
+#include <cmath>
+
 #include "MidiNote.h"
 
 bool MonophonicInstrument::isNoteActive() const {
@@ -11,7 +13,11 @@ uint8_t MonophonicInstrument::midiNoteNumber() const {
 }
 
 float MonophonicInstrument::frequencyHz() const {
-  return midiNoteToFrequencyHz(midiNoteNumber());
+  return bentFrequencyHz(midiNoteNumber());
+}
+
+int16_t MonophonicInstrument::pitchBendValue() const {
+  return pitchBendValue_;
 }
 
 void MonophonicInstrument::noteName(char* output, size_t outputSize) const {
@@ -40,7 +46,7 @@ VoiceAction MonophonicInstrument::noteOn(
 VoiceAction MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
   const int existingIndex = heldNoteIndex(midiNoteNumber);
   if (existingIndex < 0) {
-    return {VoiceActionType::None, 0, 0};
+    return {VoiceActionType::None, 0, 0, 0.0f};
   }
 
   const bool removingActiveNote =
@@ -48,7 +54,7 @@ VoiceAction MonophonicInstrument::noteOff(uint8_t midiNoteNumber) {
   removeHeldNoteAt(static_cast<size_t>(existingIndex));
 
   if (!removingActiveNote) {
-    return {VoiceActionType::None, 0, 0};
+    return {VoiceActionType::None, 0, 0, 0.0f};
   }
 
   if (heldNoteCount_ == 0) {
@@ -71,14 +77,27 @@ VoiceAction MonophonicInstrument::handleNoteEvent(const NoteEvent& event) {
       return noteOff(event.note);
   }
 
-  return {VoiceActionType::None, 0, 0};
+  return {VoiceActionType::None, 0, 0, 0.0f};
+}
+
+VoiceAction MonophonicInstrument::handlePitchBendEvent(
+    const PitchBendEvent& event) {
+  pitchBendValue_ = normalizedPitchBend(event.value);
+
+  if (!noteActive_) {
+    return {VoiceActionType::None, 0, 0, 0.0f};
+  }
+
+  return startAction(activeMidiNote_, activeVelocity_);
 }
 
 VoiceAction MonophonicInstrument::stopAll() {
+  pitchBendValue_ = 0;
+
   if (!noteActive_) {
     heldNoteCount_ = 0;
     activeVelocity_ = 0;
-    return {VoiceActionType::None, 0, 0};
+    return {VoiceActionType::None, 0, 0, 0.0f};
   }
 
   const uint8_t stoppedNote = activeMidiNote_;
@@ -110,11 +129,37 @@ void MonophonicInstrument::selectNextWaveform() {
 VoiceAction MonophonicInstrument::startAction(
     uint8_t midiNoteNumber,
     uint8_t velocity) const {
-  return {VoiceActionType::StartNote, midiNoteNumber, velocity};
+  return {
+      VoiceActionType::StartNote,
+      midiNoteNumber,
+      velocity,
+      bentFrequencyHz(midiNoteNumber),
+  };
 }
 
 VoiceAction MonophonicInstrument::stopAction(uint8_t midiNoteNumber) const {
-  return {VoiceActionType::StopNote, midiNoteNumber, 0};
+  return {VoiceActionType::StopNote, midiNoteNumber, 0, 0.0f};
+}
+
+float MonophonicInstrument::bentFrequencyHz(uint8_t midiNoteNumber) const {
+  const float baseFrequencyHz = midiNoteToFrequencyHz(midiNoteNumber);
+
+  if (pitchBendValue_ == 0) {
+    return baseFrequencyHz;
+  }
+
+  const float bendRatio =
+      pitchBendValue_ > 0
+          ? static_cast<float>(pitchBendValue_) / 8191.0f
+          : static_cast<float>(pitchBendValue_) / 8192.0f;
+  const float semitoneOffset = bendRatio * PITCH_BEND_RANGE_SEMITONES;
+  return baseFrequencyHz * std::pow(2.0f, semitoneOffset / 12.0f);
+}
+
+int16_t MonophonicInstrument::normalizedPitchBend(int16_t pitchBendValue) {
+  return std::abs(pitchBendValue) <= PITCH_BEND_DEAD_ZONE
+             ? 0
+             : pitchBendValue;
 }
 
 int MonophonicInstrument::heldNoteIndex(uint8_t midiNoteNumber) const {

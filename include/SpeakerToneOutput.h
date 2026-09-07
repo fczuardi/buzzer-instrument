@@ -20,6 +20,7 @@ public:
   void end();
   bool startNote(
       uint8_t midiNote,
+      float frequencyHz,
       ToneWaveform waveform,
       uint8_t velocity) override;
   void stopNote() override;

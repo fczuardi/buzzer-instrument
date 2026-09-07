@@ -57,6 +57,8 @@
       "docs/devlog/014-volume-probe.md",
       "docs/devlog/015-velocity-volume-mapping.md",
       "docs/devlog/016-configurable-velocity-volume-range.md",
+      "docs/devlog/017-pitch-bend-boundary.md",
+      "docs/devlog/018-audible-pitch-bend.md",
       "README.md",
       "library.json"
     ]
