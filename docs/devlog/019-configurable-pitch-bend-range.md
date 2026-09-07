@@ -18,3 +18,13 @@ The mapping remains instrument policy. `SpeakerToneOutput` still receives a
 plain frequency and does not need to understand MIDI pitch bend.
 
 Native tests cover a custom one-octave range and the negative-range clamp.
+
+The slice also adds a clearer volume calibration overload:
+
+```cpp
+speakerToneOutput.setVelocityVolumeRange(64, 128);
+```
+
+The older `VelocityVolumeRange` overload remains available, but showcase code
+can now configure pitch bend and velocity volume with similarly direct setup
+calls.

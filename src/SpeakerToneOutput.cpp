@@ -114,6 +114,12 @@ uint8_t SpeakerToneOutput::volume() const {
   return volume_;
 }
 
+void SpeakerToneOutput::setVelocityVolumeRange(
+    uint8_t minimum,
+    uint8_t maximum) {
+  setVelocityVolumeRange({minimum, maximum});
+}
+
 void SpeakerToneOutput::setVelocityVolumeRange(VelocityVolumeRange range) {
   if (range.minimum > range.maximum) {
     const uint8_t originalMinimum = range.minimum;

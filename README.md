@@ -48,7 +48,7 @@ package default.
 
 The current hardware result suggests that volumes `64..128` are usable on the
 M5StickC Plus2 buzzer. Lower values may lose the recognizable pitch, while
-larger values become distorted. `SpeakerToneOutput::setVelocityVolumeRange()`
+larger values become distorted. `SpeakerToneOutput::setVelocityVolumeRange(min, max)`
 allows firmware experiments to tune those limits without changing the instrument
 policy.
 

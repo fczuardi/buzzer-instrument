@@ -9,7 +9,7 @@ This slice keeps the default but makes it configurable through
 `SpeakerToneOutput`:
 
 ```cpp
-speakerToneOutput.setVelocityVolumeRange({64, 128});
+speakerToneOutput.setVelocityVolumeRange(64, 128);
 ```
 
 The mapping still belongs to the M5 speaker backend because the useful volume
