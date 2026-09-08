@@ -40,8 +40,8 @@ midpoint, an inverted configured range, and a constant range such as `{100, 100}
 `m5-tone-output` includes headers from `monophonic-instrument`, especially the
 `VoiceOutput` boundary and waveform sample definitions. The package does not
 currently declare `monophonic-instrument` as an automatic remote dependency
-because the showcase consumers still use archive artifacts produced from this
-umbrella repository.
+because the showcase consumers still use archive artifacts produced by the
+umbrella repository from this monorepo.
 
 Keep that explicit until the package distribution path changes. Adding a remote
 dependency too early can make a consumer resolve a Git checkout or registry
