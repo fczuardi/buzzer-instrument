@@ -1,4 +1,4 @@
-# EmbeddedMusicMonophonic
+# monophonic-instrument
 
 PlatformIO package for the shared monophonic instrument policy used by the
 embedded music experiments.
@@ -19,7 +19,7 @@ Local sibling projects can consume it with:
 
 ```ini
 lib_deps =
-  file://../../monophonic-instrument/packages/embedded-music-monophonic
+  file://../../monophonic-instrument/packages/monophonic-instrument
 ```
 
 Remote distribution is intentionally not settled yet. The migration plan is to

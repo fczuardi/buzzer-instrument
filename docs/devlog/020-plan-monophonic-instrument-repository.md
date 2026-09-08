@@ -18,9 +18,9 @@ contents into a small multi-package repository:
 ```text
 monophonic-instrument/
   packages/
-    embedded-music-monophonic/
-    embedded-music-m5-buzzer-output/
-    embedded-music-m5-speaker-output/
+    monophonic-instrument/
+    m5-buzzer-output/
+    m5-speaker-output/
 
   apps/
     m5stickc-plus2-buzzer-local-test/
@@ -29,18 +29,20 @@ monophonic-instrument/
   docs/devlog/
 ```
 
-The package names intentionally include `m5` for both output backends. This is
-more consistent than mixing a generic `buzzer-output` name with an
-M5-specific `m5speaker-output` name, and it reflects the current evidence: both
-backends are calibrated and validated inside the M5Stack/M5Unified ecosystem.
+The package names intentionally avoid an `embedded-music` or `em` prefix while
+the umbrella project name is still provisional. The output backend names still
+include `m5` because both current outputs are calibrated and validated inside
+the M5Stack/M5Unified ecosystem. If these libraries are later published to the
+PlatformIO Registry, the registry owner can provide namespacing, for example
+`fczuardi/monophonic-instrument`.
 
 The planned boundaries are:
 
 | Package | Responsibility |
 | --- | --- |
-| `embedded-music-monophonic` | `MidiNote`, `ToneWaveform`, `VoiceOutput`, `MonophonicInstrument`, and `MonophonicInstrumentSink` |
-| `embedded-music-m5-buzzer-output` | M5 buzzer/PWM output backend and buzzer-specific calibration |
-| `embedded-music-m5-speaker-output` | M5Unified `M5.Speaker` output backend and speaker-specific calibration |
+| `monophonic-instrument` | `MidiNote`, `ToneWaveform`, `VoiceOutput`, `MonophonicInstrument`, and `MonophonicInstrumentSink` |
+| `m5-buzzer-output` | M5 buzzer/PWM output backend and buzzer-specific calibration |
+| `m5-speaker-output` | M5Unified `M5.Speaker` output backend and speaker-specific calibration |
 
 Concrete device choices should live in app-level configuration, not package
 names. For example, the Plus2 buzzer and Core Gray speaker can set pins,
@@ -53,8 +55,8 @@ pieces, for example:
 
 ```ini
 lib_deps =
-  file://../../monophonic-instrument/packages/embedded-music-monophonic
-  file://../../monophonic-instrument/packages/embedded-music-m5-buzzer-output
+  file://../../monophonic-instrument/packages/monophonic-instrument
+  file://../../monophonic-instrument/packages/m5-buzzer-output
   file://../../midi-receiver
 ```
 
@@ -62,8 +64,8 @@ or:
 
 ```ini
 lib_deps =
-  file://../../monophonic-instrument/packages/embedded-music-monophonic
-  file://../../monophonic-instrument/packages/embedded-music-m5-speaker-output
+  file://../../monophonic-instrument/packages/monophonic-instrument
+  file://../../monophonic-instrument/packages/m5-speaker-output
   file://../../midi-receiver
 ```
 
@@ -78,10 +80,10 @@ package at the repository root, not multiple independent `library.json` files
 inside `packages/`.
 
 Before moving every backend, the migration should therefore prove the package
-delivery mechanism with only `packages/embedded-music-monophonic`. The first
+delivery mechanism with only `packages/monophonic-instrument`. The first
 micro-slice after the GitHub rename should:
 
-1. Create `packages/embedded-music-monophonic`.
+1. Create `packages/monophonic-instrument`.
 2. Validate local consumption with `file://`.
 3. Define and validate one remote consumption strategy.
 4. Move the hardware output packages only after that strategy is proven.
@@ -96,9 +98,9 @@ Possible remote distribution strategies:
 | Local-only consumption for now | Good for migration speed, but does not solve published showcase reproducibility |
 
 The preferred direction is GitHub Release archives per package, for example
-`embedded-music-monophonic-0.1.0.tar.gz`,
-`embedded-music-m5-buzzer-output-0.1.0.tar.gz`, and
-`embedded-music-m5-speaker-output-0.1.0.tar.gz`. This preserves the monorepo
+`monophonic-instrument-0.1.0.tar.gz`,
+`m5-buzzer-output-0.1.0.tar.gz`, and
+`m5-speaker-output-0.1.0.tar.gz`. This preserves the monorepo
 while giving consumers fixed, reproducible dependency URLs without requiring an
 immediate registry publication process.
 
@@ -134,7 +136,7 @@ Operational plan:
 1. Rename the GitHub repository `buzzer-instrument` to
    `monophonic-instrument`.
 2. Adjust the local `jj`/Git remote to the renamed repository.
-3. Create only `packages/embedded-music-monophonic` and prove local package
+3. Create only `packages/monophonic-instrument` and prove local package
    consumption with `file://`.
 4. Prove the chosen remote package consumption mechanism.
 5. Move the current reusable buzzer code into `packages/`.

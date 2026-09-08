@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
-  "name": "EmbeddedMusicMonophonic",
+  "name": "monophonic-instrument",
   "version": "0.1.0",
   "description": "Monophonic instrument policy for embedded music experiments",
   "keywords": ["instrument", "midi", "monophonic", "embedded", "music"],

@@ -78,17 +78,17 @@ and musical purpose without forking or modifying this package.
 The root `library.json` still packages the legacy buzzer instrument as
 `EmbeddedMusicBuzzerInstrument`, so a separate showcase firmware can consume
 the current buzzer instrument without importing this repository's local button
-smoke test. The new `packages/embedded-music-monophonic` package is the first
+smoke test. The new `packages/monophonic-instrument` package is the first
 step toward splitting the shared policy from the M5 output backends.
 
 ## Commands
 
 ```bash
 pio test -e native
-pio test -d packages/embedded-music-monophonic -e native
+pio test -d packages/monophonic-instrument -e native
 pio run
-pio pkg pack . --output /tmp
-pio pkg pack packages/embedded-music-monophonic --output /tmp
+pio pkg pack . --output /home/fcz/dev/m5stick/.tmp
+pio pkg pack packages/monophonic-instrument --output /home/fcz/dev/m5stick/.tmp
 pio run --target upload
 pio device monitor
 ```
@@ -96,5 +96,5 @@ pio device monitor
 ## CI
 
 GitHub Actions runs native tests, the M5StickC Plus2 firmware build, the legacy
-root package check, and the new `embedded-music-monophonic` package checks on
+root package check, and the new `monophonic-instrument` package checks on
 pushes and pull requests. The workflow lives at `.github/workflows/ci.yml`.

@@ -1,7 +1,7 @@
 # Slice 021: Extract Monophonic Package Probe
 
 After the GitHub repository rename, the first migration step is deliberately
-small: create only the `embedded-music-monophonic` subpackage and prove that it
+small: create only the `monophonic-instrument` subpackage and prove that it
 can behave as an independent PlatformIO library.
 
 The package currently contains the shared musical layer:
@@ -18,15 +18,15 @@ firmware and legacy package checks continue to protect current behavior while
 the subpackage mechanics are tested.
 
 This creates temporary duplication between the root package and
-`packages/embedded-music-monophonic`. That duplication is intentional and has a
+`packages/monophonic-instrument`. That duplication is intentional and has a
 short deadline: the next migration slices should move the root app and output
 backend onto the package path after local and remote consumption are proven.
 
 Validation targets:
 
 ```bash
-pio test -d packages/embedded-music-monophonic -e native
-pio pkg pack packages/embedded-music-monophonic --output /tmp
+pio test -d packages/monophonic-instrument -e native
+pio pkg pack packages/monophonic-instrument --output /home/fcz/dev/m5stick/.tmp
 ```
 
 A temporary consumer should also build against the package through `file://`.
