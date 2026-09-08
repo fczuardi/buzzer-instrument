@@ -34,3 +34,15 @@ If we add non-linear velocity curves, reusable presets, or a second audio
 backend, move this mapping to pure C++ code with native tests. Cover at least
 velocity 0/1 mapping to the minimum, velocity 127 mapping to the maximum, a
 midpoint, an inverted configured range, and a constant range such as `{100, 100}`.
+
+## Revisit `m5-tone-output` Package Dependency Publication
+
+`m5-tone-output` includes headers from `monophonic-instrument`, especially the
+`VoiceOutput` boundary and waveform sample definitions. The package does not
+currently declare `monophonic-instrument` as an automatic remote dependency
+because the showcase consumers still use archive artifacts produced from this
+umbrella repository.
+
+Keep that explicit until the package distribution path changes. Adding a remote
+dependency too early can make a consumer resolve a Git checkout or registry
+package instead of the exact archive pair that was built and validated together.

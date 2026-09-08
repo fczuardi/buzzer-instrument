@@ -99,11 +99,12 @@ C toggles between `sq32` and `saw32`.
 ## Commands
 
 ```bash
+mkdir -p .tmp
 pio test -d packages/monophonic-instrument -e native
 pio run -d apps/plus2-buzzer-local-test
 pio run -d apps/core-gray-speaker-local-test
-pio pkg pack packages/monophonic-instrument --output /home/fcz/dev/m5stick/.tmp
-pio pkg pack packages/m5-tone-output --output /home/fcz/dev/m5stick/.tmp
+pio pkg pack packages/monophonic-instrument --output .tmp
+pio pkg pack packages/m5-tone-output --output .tmp
 pio run -d apps/plus2-buzzer-local-test --target upload
 pio device monitor -d apps/plus2-buzzer-local-test
 pio run -d apps/core-gray-speaker-local-test --target upload
