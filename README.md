@@ -9,17 +9,23 @@ output backends.
 
 Packages live under `packages/`. Device-level probes live under `apps/`.
 
-## First milestone
+## Current milestone
 
-Produce one note at a time on the built-in buzzer:
+Run the same monophonic instrument policy through two hardware-backed M5 audio
+outputs:
 
 - convert a musical note into its frequency;
 - start and stop the tone reliably;
 - define predictable behavior when more than one note is requested;
 - stop sounding during cleanup or disconnection;
-- keep the musical policy separate from the hardware-specific output.
+- keep the musical policy separate from the hardware-specific output;
+- preserve device calibration in the concrete buzzer and speaker backends.
 
-The first implementation should remain useful without MIDI. Integration with [midi-receiver](https://github.com/fczuardi/midi-receiver) comes after the basic buzzer output works.
+The M5StickC Plus2 buzzer remains the original baseline. The M5Stack Core Gray
+speaker is the second hardware validation of the same policy and `VoiceOutput`
+boundary. Both also remain useful without MIDI through their local test apps;
+BLE MIDI compositions live in
+[embedded-music-experiments](https://github.com/fczuardi/embedded-music-experiments).
 
 ## Scope
 
@@ -29,10 +35,11 @@ hardware validation.
 
 The broader context and provisional architecture are documented in [embedded-music-experiments](https://github.com/fczuardi/embedded-music-experiments).
 
-## Initial environment
+## Validated environments
 
-- M5StickC Plus2
-- ESP32
+- M5StickC Plus2 built-in buzzer;
+- M5Stack Core Gray 1.0 built-in speaker;
+- ESP32 and ESP32-PICO-D4;
 - PlatformIO
 - Arduino framework
 - M5Unified
@@ -105,6 +112,6 @@ pio device monitor -d apps/core-gray-speaker-local-test
 
 ## CI
 
-GitHub Actions runs the extracted package checks and the M5StickC Plus2 local
-test app build on pushes and pull requests. The workflow lives at
-`.github/workflows/ci.yml`.
+GitHub Actions runs the extracted package checks, native policy tests, consumer
+fixtures, and both the M5StickC Plus2 and M5Stack Core Gray local app builds on
+pushes and pull requests. The workflow lives at `.github/workflows/ci.yml`.
