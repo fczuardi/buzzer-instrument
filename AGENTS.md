@@ -24,7 +24,7 @@ working need for the same contract.
 - `packages/monophonic-instrument/`: shared pure instrument policy and native
   tests.
 - `packages/m5-tone-output/`: M5Unified tone output backends, including the
-  M5StickC Plus2 buzzer output.
+  M5StickC Plus2 buzzer output and M5Stack Core Gray speaker output.
 - `apps/`: local hardware probes that consume packages.
 - `docs/devlog/`: one Markdown chapter per implementation slice.
 
@@ -39,6 +39,8 @@ Use PlatformIO for package and app validation:
 - `pio run -d apps/plus2-buzzer-local-test --target upload`: upload to the
   connected device.
 - `pio device monitor -d apps/plus2-buzzer-local-test`: read serial output.
+- `pio run -d apps/core-gray-speaker-local-test`: build the local M5Stack Core
+  Gray speaker probe.
 
 ## Coding Style & Naming Conventions
 

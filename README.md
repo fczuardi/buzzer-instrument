@@ -47,7 +47,9 @@ priority.
 `packages/m5-tone-output` owns M5Unified speaker-like output backends. Its
 `M5BuzzerToneOutput` class configures the M5StickC Plus2 buzzer and delegates
 shared tone playback, waveform, and velocity-to-volume behavior to
-`M5ToneOutputCore`.
+`M5ToneOutputCore`. Its `M5CoreGrayToneOutput` class carries the M5Stack Core
+Gray speaker defaults validated by the earlier speaker smoke tests while using
+the same shared core.
 Shared `ToneWaveformSamples` data defines the short waveform buffers consumed
 by M5 audio output packages without depending on M5Unified.
 
@@ -78,6 +80,12 @@ behavior:
 A showcase or device composition can calibrate both settings for its hardware
 and musical purpose without forking or modifying this package.
 
+`apps/core-gray-speaker-local-test` migrates the useful local note-sweep smoke
+test from the old `m5-speaker-instrument` repo into this unified package home.
+It keeps the Core Gray validation local to the device: Button A starts/stops
+the selected tone, Button B advances through C3, C4, A4, C5, and C6, and Button
+C toggles between `sq32` and `saw32`.
+
 `NoteEvent`, `PitchBendEvent`, and `InstrumentEventSink` come from
 `EmbeddedMusicFirmwareContracts` in `embedded-music-experiments`.
 
@@ -86,10 +94,13 @@ and musical purpose without forking or modifying this package.
 ```bash
 pio test -d packages/monophonic-instrument -e native
 pio run -d apps/plus2-buzzer-local-test
+pio run -d apps/core-gray-speaker-local-test
 pio pkg pack packages/monophonic-instrument --output /home/fcz/dev/m5stick/.tmp
 pio pkg pack packages/m5-tone-output --output /home/fcz/dev/m5stick/.tmp
 pio run -d apps/plus2-buzzer-local-test --target upload
 pio device monitor -d apps/plus2-buzzer-local-test
+pio run -d apps/core-gray-speaker-local-test --target upload
+pio device monitor -d apps/core-gray-speaker-local-test
 ```
 
 ## CI

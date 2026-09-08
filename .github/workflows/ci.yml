@@ -94,3 +94,30 @@ jobs:
 
       - name: Build app
         run: env PLATFORMIO_CORE_DIR=.platformio-home pio run -d apps/plus2-buzzer-local-test
+
+  core-gray-speaker-local-test:
+    name: Core Gray speaker local test app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v5
+        with:
+          path: .platformio-home
+          key: platformio-core-gray-speaker-local-test-${{ runner.os }}-${{ hashFiles('apps/core-gray-speaker-local-test/platformio.ini', 'packages/*/library.json') }}
+          restore-keys: |
+            platformio-core-gray-speaker-local-test-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.19
+
+      - name: Build app
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio run -d apps/core-gray-speaker-local-test

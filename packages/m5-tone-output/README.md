@@ -9,6 +9,8 @@ Current public classes:
   velocity-to-volume behavior.
 - `M5BuzzerToneOutput`: M5StickC Plus2 buzzer configuration backed by
   `M5ToneOutputCore`.
+- `M5CoreGrayToneOutput`: M5Stack Core Gray internal speaker defaults backed by
+  `M5ToneOutputCore`.
 
 Consumers must also depend on `monophonic-instrument` while these packages are
 consumed from local paths or archives:
