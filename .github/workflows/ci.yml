@@ -5,96 +5,6 @@ on:
   pull_request:
 
 jobs:
-  native-tests:
-    name: Native tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Cache PlatformIO packages
-        uses: actions/cache@v5
-        with:
-          path: .platformio-home
-          key: platformio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
-          restore-keys: |
-            platformio-${{ runner.os }}-
-
-      - name: Install PlatformIO
-        run: python -m pip install platformio==6.1.19
-
-      - name: Run native tests
-        run: env PLATFORMIO_CORE_DIR=.platformio-home pio test -e native
-
-  firmware-build:
-    name: Firmware build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Cache PlatformIO packages
-        uses: actions/cache@v5
-        with:
-          path: .platformio-home
-          key: platformio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
-          restore-keys: |
-            platformio-${{ runner.os }}-
-
-      - name: Install PlatformIO
-        run: python -m pip install platformio==6.1.19
-
-      - name: Build firmware
-        run: env PLATFORMIO_CORE_DIR=.platformio-home pio run
-
-      - name: Validate PlatformIO library package
-        run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack . --output /tmp
-
-      - name: Build temporary package consumer
-        run: |
-          mkdir -p /tmp/buzzer-instrument-consumer/src
-          cat > /tmp/buzzer-instrument-consumer/platformio.ini <<'EOF'
-          [env:esp32dev]
-          platform = platformio/espressif32@7.0.1
-          board = esp32dev
-          framework = arduino
-          lib_deps =
-            file://${{ github.workspace }}
-          EOF
-          cat > /tmp/buzzer-instrument-consumer/src/main.cpp <<'EOF'
-          #include <Arduino.h>
-          #include <M5Unified.h>
-
-          #include "MonophonicInstrument.h"
-          #include "MonophonicInstrumentSink.h"
-          #include "SpeakerToneOutput.h"
-
-          MonophonicInstrument instrument;
-          SpeakerToneOutput output;
-          MonophonicInstrumentSink sink(instrument, output);
-
-          void setup() {
-            output.setWaveform(instrument.waveform());
-            sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
-            sink.onNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
-          }
-
-          void loop() {}
-          EOF
-          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/buzzer-instrument-consumer
-
   monophonic-package:
     name: Monophonic package
     runs-on: ubuntu-latest
@@ -206,3 +116,30 @@ jobs:
           void loop() {}
           EOF
           env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/m5-buzzer-output-consumer
+
+  plus2-buzzer-local-test:
+    name: Plus2 buzzer local test app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v5
+        with:
+          path: .platformio-home
+          key: platformio-plus2-buzzer-local-test-${{ runner.os }}-${{ hashFiles('apps/plus2-buzzer-local-test/platformio.ini', 'packages/*/library.json') }}
+          restore-keys: |
+            platformio-plus2-buzzer-local-test-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.19
+
+      - name: Build app
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio run -d apps/plus2-buzzer-local-test
