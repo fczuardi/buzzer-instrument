@@ -14,6 +14,7 @@ Current contents:
 - `VoiceOutput`
 - `MonophonicInstrument`
 - `MonophonicInstrumentSink`
+- `ToneWaveformSamples`
 
 Local sibling projects can consume it with:
 

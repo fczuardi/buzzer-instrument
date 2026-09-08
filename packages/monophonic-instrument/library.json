@@ -15,6 +15,7 @@
     "MonophonicInstrument.h",
     "MonophonicInstrumentSink.h",
     "ToneWaveform.h",
+    "ToneWaveformSamples.h",
     "VoiceOutput.h"
   ],
   "dependencies": [

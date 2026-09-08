@@ -46,6 +46,8 @@ The current firmware is a monophonic note-event smoke test.
 external producers. `MonophonicInstrument` tracks held notes with last-note
 priority, and `SpeakerToneOutput` implements the hardware-neutral `VoiceOutput`
 interface that renders the active note through M5Unified's `M5.Speaker` API.
+Shared `ToneWaveformSamples` data defines the short waveform buffers consumed
+by M5 audio output packages without depending on M5Unified.
 Button A simulates a C4 note while pressed, and Button B cycles probe velocity
 levels so the hardware can validate the current velocity-to-volume mapping.
 Holding Button A for one second runs a pitch bend demo around C4.

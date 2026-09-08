@@ -1,46 +1,8 @@
 #include "SpeakerToneOutput.h"
-
-#include <cstddef>
+#include "ToneWaveformSamples.h"
 
 #include <Arduino.h>
 #include <M5Unified.h>
-
-namespace {
-struct WaveformDefinition {
-  ToneWaveform waveform;
-  const uint8_t* samples;
-  size_t sampleCount;
-};
-
-constexpr uint8_t SQUARE_WAVE_32[] = {
-    255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255,
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0,
-};
-
-constexpr uint8_t SAW_WAVE_32[] = {
-    0,   8,   16,  25,  33,  41,  49,  58,
-    66,  74,  82,  90,  99,  107, 115, 123,
-    132, 140, 148, 156, 165, 173, 181, 189,
-    197, 206, 214, 222, 230, 239, 247, 255,
-};
-
-constexpr WaveformDefinition WAVEFORMS[] = {
-    {ToneWaveform::Square32, SQUARE_WAVE_32, sizeof(SQUARE_WAVE_32)},
-    {ToneWaveform::Saw32, SAW_WAVE_32, sizeof(SAW_WAVE_32)},
-};
-
-const WaveformDefinition& waveformDefinition(ToneWaveform waveform) {
-  for (const WaveformDefinition& definition : WAVEFORMS) {
-    if (definition.waveform == waveform) {
-      return definition;
-    }
-  }
-
-  return WAVEFORMS[0];
-}
-}
 
 void SpeakerToneOutput::begin() {
   auto config = M5.Speaker.config();
@@ -71,14 +33,14 @@ bool SpeakerToneOutput::startTone(float frequencyHz) {
     return false;
   }
 
-  const WaveformDefinition& definition = waveformDefinition(waveform_);
+  const ToneWaveformSamples waveformSamples = toneWaveformSamples(waveform_);
   const bool toneStarted = M5.Speaker.tone(
       frequencyHz,
       UINT32_MAX,
       SPEAKER_CHANNEL,
       true,
-      definition.samples,
-      definition.sampleCount);
+      waveformSamples.samples,
+      waveformSamples.sampleCount);
 
   playing_ = toneStarted;
   return toneStarted;
