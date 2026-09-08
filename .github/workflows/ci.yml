@@ -144,3 +144,65 @@ jobs:
           }
           EOF
           env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/monophonic-package-consumer
+
+  m5-buzzer-output-package:
+    name: M5 buzzer output package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v5
+        with:
+          path: .platformio-home
+          key: platformio-m5-buzzer-output-${{ runner.os }}-${{ hashFiles('packages/m5-buzzer-output/platformio.ini', 'packages/m5-buzzer-output/library.json', 'packages/monophonic-instrument/library.json') }}
+          restore-keys: |
+            platformio-m5-buzzer-output-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.19
+
+      - name: Pack M5 buzzer output package
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack packages/m5-buzzer-output --output /tmp
+
+      - name: Build temporary M5 buzzer output consumer
+        run: |
+          mkdir -p /tmp/m5-buzzer-output-consumer/src
+          cat > /tmp/m5-buzzer-output-consumer/platformio.ini <<'EOF'
+          [env:esp32dev]
+          platform = platformio/espressif32@7.0.1
+          board = esp32dev
+          framework = arduino
+          lib_deps =
+            monophonic-instrument=file://${{ github.workspace }}/packages/monophonic-instrument
+            m5-buzzer-output=file://${{ github.workspace }}/packages/m5-buzzer-output
+          EOF
+          cat > /tmp/m5-buzzer-output-consumer/src/main.cpp <<'EOF'
+          #include <Arduino.h>
+          #include <M5Unified.h>
+
+          #include "MonophonicInstrument.h"
+          #include "MonophonicInstrumentSink.h"
+          #include "SpeakerToneOutput.h"
+
+          MonophonicInstrument instrument;
+          SpeakerToneOutput output;
+          MonophonicInstrumentSink sink(instrument, output);
+
+          void setup() {
+            output.setWaveform(instrument.waveform());
+            output.setVelocityVolumeRange({64, 128});
+            sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
+            sink.onNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
+          }
+
+          void loop() {}
+          EOF
+          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/m5-buzzer-output-consumer
