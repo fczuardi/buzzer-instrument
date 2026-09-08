@@ -26,9 +26,9 @@ contract holds, make `handleNoteEvent()` the public note input and move
 
 ## Extract Velocity-To-Volume Mapping When It Grows
 
-`SpeakerToneOutput` currently maps MIDI velocity to speaker volume with a simple
-linear range. The behavior is deterministic, but it lives inside the M5 speaker
-backend and is only validated through hardware tests.
+`M5ToneOutputCore` currently maps MIDI velocity to speaker volume with a simple
+linear range. The behavior is deterministic, but it lives inside the M5 tone
+output package and is only validated through hardware tests.
 
 If we add non-linear velocity curves, reusable presets, or a second audio
 backend, move this mapping to pure C++ code with native tests. Cover at least

@@ -4,7 +4,7 @@
 #include "MidiNote.h"
 #include "MonophonicInstrument.h"
 #include "MonophonicInstrumentSink.h"
-#include "SpeakerToneOutput.h"
+#include "M5BuzzerToneOutput.h"
 
 namespace {
 constexpr uint32_t UPTIME_LOG_INTERVAL_MS = 1000;
@@ -18,7 +18,7 @@ constexpr int16_t PITCH_BEND_MINIMUM = -8192;
 constexpr int16_t PITCH_BEND_MAXIMUM = 8191;
 
 MonophonicInstrument instrument;
-SpeakerToneOutput speakerToneOutput;
+M5BuzzerToneOutput speakerToneOutput;
 MonophonicInstrumentSink instrumentSink(instrument, speakerToneOutput);
 bool tonePlaying = false;
 size_t selectedVelocityIndex = 3;

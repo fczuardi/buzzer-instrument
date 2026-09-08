@@ -4,7 +4,7 @@ The repository no longer needs to preserve the old combined
 `EmbeddedMusicBuzzerInstrument` package or root PlatformIO project. The only
 current consumers are our own experiments, and the M5StickC Plus2 BLE showcase
 already builds from the extracted `monophonic-instrument` and
-`m5-buzzer-output` packages.
+`m5-tone-output` packages.
 
 This slice makes `packages/` the source of truth and moves the local Plus2
 button firmware to:
@@ -25,7 +25,7 @@ Validation targets:
 pio test -d packages/monophonic-instrument -e native
 pio run -d apps/plus2-buzzer-local-test
 pio pkg pack packages/monophonic-instrument --output /home/fcz/dev/m5stick/.tmp
-pio pkg pack packages/m5-buzzer-output --output /home/fcz/dev/m5stick/.tmp
+pio pkg pack packages/m5-tone-output --output /home/fcz/dev/m5stick/.tmp
 ```
 
 The old root native tests were duplicates of the package tests and are removed
@@ -35,7 +35,7 @@ Verified result:
 
 - `packages/monophonic-instrument` native tests passed with 44/44 test cases.
 - `apps/plus2-buzzer-local-test` built successfully from its app directory.
-- `monophonic-instrument` and `m5-buzzer-output` package archives packed
+- `monophonic-instrument` and `m5-tone-output` package archives packed
   successfully into `/home/fcz/dev/m5stick/.tmp`.
 - A fresh temporary Arduino consumer built successfully from the two local
   package paths, proving there is no root `include/` or `src/` fallback.

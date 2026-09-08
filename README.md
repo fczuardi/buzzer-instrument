@@ -44,9 +44,10 @@ The broader context and provisional architecture are documented in [embedded-mus
 external producers. `MonophonicInstrument` tracks held notes with last-note
 priority.
 
-`packages/m5-buzzer-output` owns `SpeakerToneOutput`, the M5StickC Plus2 buzzer
-backend that implements the hardware-neutral `VoiceOutput` interface and
-renders the active note through M5Unified's `M5.Speaker` API.
+`packages/m5-tone-output` owns M5Unified speaker-like output backends. Its
+`M5BuzzerToneOutput` class configures the M5StickC Plus2 buzzer and delegates
+shared tone playback, waveform, and velocity-to-volume behavior to
+`M5ToneOutputCore`.
 Shared `ToneWaveformSamples` data defines the short waveform buffers consumed
 by M5 audio output packages without depending on M5Unified.
 
@@ -62,7 +63,7 @@ package default.
 
 The current hardware result suggests that volumes `64..128` are usable on the
 M5StickC Plus2 buzzer. Lower values may lose the recognizable pitch, while
-larger values become distorted. `SpeakerToneOutput::setVelocityVolumeRange()`
+larger values become distorted. `M5BuzzerToneOutput::setVelocityVolumeRange()`
 allows firmware experiments to tune those limits without changing the instrument
 policy.
 
@@ -71,7 +72,7 @@ behavior:
 
 | Setting | Package default | Consumer override |
 | --- | --- | --- |
-| Velocity-to-volume range | `64..128` | `SpeakerToneOutput::setVelocityVolumeRange()` |
+| Velocity-to-volume range | `64..128` | `M5BuzzerToneOutput::setVelocityVolumeRange()` |
 | Pitch bend range | ±2 semitones | `MonophonicInstrument::setPitchBendRangeSemitones()` |
 
 A showcase or device composition can calibrate both settings for its hardware
@@ -86,7 +87,7 @@ and musical purpose without forking or modifying this package.
 pio test -d packages/monophonic-instrument -e native
 pio run -d apps/plus2-buzzer-local-test
 pio pkg pack packages/monophonic-instrument --output /home/fcz/dev/m5stick/.tmp
-pio pkg pack packages/m5-buzzer-output --output /home/fcz/dev/m5stick/.tmp
+pio pkg pack packages/m5-tone-output --output /home/fcz/dev/m5stick/.tmp
 pio run -d apps/plus2-buzzer-local-test --target upload
 pio device monitor -d apps/plus2-buzzer-local-test
 ```

@@ -1,24 +1,27 @@
-#include "SpeakerToneOutput.h"
-#include "ToneWaveformSamples.h"
+#include "M5ToneOutputCore.h"
 
 #include <Arduino.h>
 #include <M5Unified.h>
 
-void SpeakerToneOutput::begin() {
-  auto config = M5.Speaker.config();
-  config.buzzer = true;
-  config.pin_data_out = BUZZER_GPIO_PIN;
-  config.sample_rate = SPEAKER_SAMPLE_RATE_HZ;
-  config.magnification = SPEAKER_MAGNIFICATION;
-  M5.Speaker.config(config);
+#include "ToneWaveformSamples.h"
 
+M5ToneOutputCore::M5ToneOutputCore(
+    uint8_t initialVolume,
+    VelocityVolumeRange velocityVolumeRange,
+    ToneWaveform waveform)
+    : volume_(initialVolume),
+      velocityVolumeRange_(velocityVolumeRange),
+      waveform_(waveform) {
+}
+
+void M5ToneOutputCore::begin() {
   M5.Speaker.begin();
   M5.Speaker.setVolume(volume_);
   initialized_ = true;
   playing_ = false;
 }
 
-void SpeakerToneOutput::end() {
+void M5ToneOutputCore::end() {
   if (!initialized_) {
     return;
   }
@@ -28,7 +31,7 @@ void SpeakerToneOutput::end() {
   initialized_ = false;
 }
 
-bool SpeakerToneOutput::startTone(float frequencyHz) {
+bool M5ToneOutputCore::startTone(float frequencyHz) {
   if (!initialized_ || frequencyHz <= 0.0f) {
     return false;
   }
@@ -46,7 +49,7 @@ bool SpeakerToneOutput::startTone(float frequencyHz) {
   return toneStarted;
 }
 
-bool SpeakerToneOutput::startNote(
+bool M5ToneOutputCore::startNote(
     uint8_t,
     float frequencyHz,
     ToneWaveform waveform,
@@ -56,7 +59,7 @@ bool SpeakerToneOutput::startNote(
   return startTone(frequencyHz);
 }
 
-void SpeakerToneOutput::stop() {
+void M5ToneOutputCore::stop() {
   if (!initialized_) {
     return;
   }
@@ -65,18 +68,18 @@ void SpeakerToneOutput::stop() {
   playing_ = false;
 }
 
-void SpeakerToneOutput::setVolume(uint8_t volume) {
+void M5ToneOutputCore::setVolume(uint8_t volume) {
   volume_ = volume;
   if (initialized_) {
     M5.Speaker.setVolume(volume_);
   }
 }
 
-uint8_t SpeakerToneOutput::volume() const {
+uint8_t M5ToneOutputCore::volume() const {
   return volume_;
 }
 
-void SpeakerToneOutput::setVelocityVolumeRange(VelocityVolumeRange range) {
+void M5ToneOutputCore::setVelocityVolumeRange(VelocityVolumeRange range) {
   if (range.minimum > range.maximum) {
     const uint8_t originalMinimum = range.minimum;
     range.minimum = range.maximum;
@@ -86,33 +89,33 @@ void SpeakerToneOutput::setVelocityVolumeRange(VelocityVolumeRange range) {
   velocityVolumeRange_ = range;
 }
 
-VelocityVolumeRange SpeakerToneOutput::velocityVolumeRange() const {
+VelocityVolumeRange M5ToneOutputCore::velocityVolumeRange() const {
   return velocityVolumeRange_;
 }
 
-uint8_t SpeakerToneOutput::volumeForVelocity(uint8_t velocity) const {
+uint8_t M5ToneOutputCore::volumeForVelocity(uint8_t velocity) const {
   return velocityVolumeRange_.minimum +
       ((static_cast<uint16_t>(velocity) *
         (velocityVolumeRange_.maximum - velocityVolumeRange_.minimum)) /
        127);
 }
 
-void SpeakerToneOutput::stopNote() {
+void M5ToneOutputCore::stopNote() {
   stop();
 }
 
-bool SpeakerToneOutput::isPlaying() const {
+bool M5ToneOutputCore::isPlaying() const {
   return playing_;
 }
 
-void SpeakerToneOutput::setWaveform(ToneWaveform waveform) {
+void M5ToneOutputCore::setWaveform(ToneWaveform waveform) {
   waveform_ = waveform;
 }
 
-ToneWaveform SpeakerToneOutput::waveform() const {
+ToneWaveform M5ToneOutputCore::waveform() const {
   return waveform_;
 }
 
-const char* SpeakerToneOutput::waveformName() const {
+const char* M5ToneOutputCore::waveformName() const {
   return toneWaveformName(waveform_);
 }

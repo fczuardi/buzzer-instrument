@@ -23,7 +23,8 @@ working need for the same contract.
 
 - `packages/monophonic-instrument/`: shared pure instrument policy and native
   tests.
-- `packages/m5-buzzer-output/`: M5StickC Plus2 buzzer output backend.
+- `packages/m5-tone-output/`: M5Unified tone output backends, including the
+  M5StickC Plus2 buzzer output.
 - `apps/`: local hardware probes that consume packages.
 - `docs/devlog/`: one Markdown chapter per implementation slice.
 

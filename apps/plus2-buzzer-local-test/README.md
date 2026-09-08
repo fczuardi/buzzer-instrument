@@ -8,7 +8,7 @@ This app consumes the package sources from this repository:
 ```ini
 lib_deps =
   monophonic-instrument=file://../../packages/monophonic-instrument
-  m5-buzzer-output=file://../../packages/m5-buzzer-output
+  m5-tone-output=file://../../packages/m5-tone-output
 ```
 
 Commands:

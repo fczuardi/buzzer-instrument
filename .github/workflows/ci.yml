@@ -55,8 +55,8 @@ jobs:
           EOF
           env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/monophonic-package-consumer
 
-  m5-buzzer-output-package:
-    name: M5 buzzer output package
+  m5-tone-output-package:
+    name: M5 tone output package
     runs-on: ubuntu-latest
 
     steps:
@@ -72,38 +72,38 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .platformio-home
-          key: platformio-m5-buzzer-output-${{ runner.os }}-${{ hashFiles('packages/m5-buzzer-output/platformio.ini', 'packages/m5-buzzer-output/library.json', 'packages/monophonic-instrument/library.json') }}
+          key: platformio-m5-tone-output-${{ runner.os }}-${{ hashFiles('packages/m5-tone-output/platformio.ini', 'packages/m5-tone-output/library.json', 'packages/monophonic-instrument/library.json') }}
           restore-keys: |
-            platformio-m5-buzzer-output-${{ runner.os }}-
+            platformio-m5-tone-output-${{ runner.os }}-
 
       - name: Install PlatformIO
         run: python -m pip install platformio==6.1.19
 
-      - name: Pack M5 buzzer output package
-        run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack packages/m5-buzzer-output --output /tmp
+      - name: Pack M5 tone output package
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack packages/m5-tone-output --output /tmp
 
-      - name: Build temporary M5 buzzer output consumer
+      - name: Build temporary M5 tone output consumer
         run: |
-          mkdir -p /tmp/m5-buzzer-output-consumer/src
-          cat > /tmp/m5-buzzer-output-consumer/platformio.ini <<'EOF'
+          mkdir -p /tmp/m5-tone-output-consumer/src
+          cat > /tmp/m5-tone-output-consumer/platformio.ini <<'EOF'
           [env:esp32dev]
           platform = platformio/espressif32@7.0.1
           board = esp32dev
           framework = arduino
           lib_deps =
             monophonic-instrument=file://${{ github.workspace }}/packages/monophonic-instrument
-            m5-buzzer-output=file://${{ github.workspace }}/packages/m5-buzzer-output
+            m5-tone-output=file://${{ github.workspace }}/packages/m5-tone-output
           EOF
-          cat > /tmp/m5-buzzer-output-consumer/src/main.cpp <<'EOF'
+          cat > /tmp/m5-tone-output-consumer/src/main.cpp <<'EOF'
           #include <Arduino.h>
           #include <M5Unified.h>
 
           #include "MonophonicInstrument.h"
           #include "MonophonicInstrumentSink.h"
-          #include "SpeakerToneOutput.h"
+          #include "M5BuzzerToneOutput.h"
 
           MonophonicInstrument instrument;
-          SpeakerToneOutput output;
+          M5BuzzerToneOutput output;
           MonophonicInstrumentSink sink(instrument, output);
 
           void setup() {
@@ -115,7 +115,7 @@ jobs:
 
           void loop() {}
           EOF
-          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/m5-buzzer-output-consumer
+          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/m5-tone-output-consumer
 
   plus2-buzzer-local-test:
     name: Plus2 buzzer local test app
