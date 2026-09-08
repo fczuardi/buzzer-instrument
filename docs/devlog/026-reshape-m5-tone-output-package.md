@@ -31,5 +31,10 @@ pio run -d /tmp/m5-tone-output-archive-consumer-reshape
 ```
 
 The first temporary consumer validates local `file://` package dependencies.
-The second validates the generated `monophonic-instrument-0.1.0.tar.gz` and
-`m5-tone-output-0.1.0.tar.gz` archives that downstream showcase firmware uses.
+The package versions were bumped to `0.1.1` so archive consumers reinstall after
+the shared waveform-sample headers moved into `monophonic-instrument` and the
+buzzer output archive became `m5-tone-output`.
+
+The second temporary consumer validates the generated
+`monophonic-instrument-0.1.1.tar.gz` and `m5-tone-output-0.1.1.tar.gz` archives
+that downstream showcase firmware uses.
