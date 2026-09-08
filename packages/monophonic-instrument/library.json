@@ -20,8 +20,8 @@
   ],
   "dependencies": [
     {
-      "name": "EmbeddedMusicFirmwareContracts",
-      "version": "https://github.com/fczuardi/embedded-music-experiments.git#154035d94df99ab05c3eeb7eb144bf2012972ada"
+      "name": "firmware-contracts",
+      "version": "https://github.com/fczuardi/embedded-music-experiments.git#c9bde598cff9"
     }
   ]
 }

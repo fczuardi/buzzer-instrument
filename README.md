@@ -87,7 +87,7 @@ the selected tone, Button B advances through C3, C4, A4, C5, and C6, and Button
 C toggles between `sq32` and `saw32`.
 
 `NoteEvent`, `PitchBendEvent`, and `InstrumentEventSink` come from
-`EmbeddedMusicFirmwareContracts` in `embedded-music-experiments`.
+`firmware-contracts` in `embedded-music-experiments`.
 
 ## Commands
 
