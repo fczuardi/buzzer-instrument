@@ -22,7 +22,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .platformio-home
-          key: platformio-monophonic-${{ runner.os }}-${{ hashFiles('packages/monophonic-instrument/platformio.ini', 'packages/monophonic-instrument/library.json') }}
+          key: platformio-monophonic-${{ runner.os }}-${{ hashFiles('packages/monophonic-instrument/platformio.ini', 'packages/monophonic-instrument/library.json', 'ci/consumers/monophonic-package/platformio.ini', 'ci/consumers/monophonic-package/src/main.cpp') }}
           restore-keys: |
             platformio-monophonic-${{ runner.os }}-
 
@@ -35,25 +35,8 @@ jobs:
       - name: Pack monophonic package
         run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack packages/monophonic-instrument --output /tmp
 
-      - name: Build temporary monophonic consumer
-        run: |
-          mkdir -p /tmp/monophonic-package-consumer/src
-          cat > /tmp/monophonic-package-consumer/platformio.ini <<'EOF'
-          [env:native]
-          platform = native
-          lib_deps =
-            file://${{ github.workspace }}/packages/monophonic-instrument
-          EOF
-          cat > /tmp/monophonic-package-consumer/src/main.cpp <<'EOF'
-          #include "MonophonicInstrument.h"
-
-          int main() {
-            MonophonicInstrument instrument;
-            const VoiceAction action = instrument.noteOn(69, 100);
-            return action.type == VoiceActionType::StartNote ? 0 : 1;
-          }
-          EOF
-          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/monophonic-package-consumer
+      - name: Build monophonic consumer
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio run -d ci/consumers/monophonic-package
 
   m5-tone-output-package:
     name: M5 tone output package
@@ -72,7 +55,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .platformio-home
-          key: platformio-m5-tone-output-${{ runner.os }}-${{ hashFiles('packages/m5-tone-output/platformio.ini', 'packages/m5-tone-output/library.json', 'packages/monophonic-instrument/library.json') }}
+          key: platformio-m5-tone-output-${{ runner.os }}-${{ hashFiles('packages/m5-tone-output/platformio.ini', 'packages/m5-tone-output/library.json', 'packages/monophonic-instrument/library.json', 'ci/consumers/m5-tone-output/platformio.ini', 'ci/consumers/m5-tone-output/src/main.cpp') }}
           restore-keys: |
             platformio-m5-tone-output-${{ runner.os }}-
 
@@ -82,40 +65,8 @@ jobs:
       - name: Pack M5 tone output package
         run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack packages/m5-tone-output --output /tmp
 
-      - name: Build temporary M5 tone output consumer
-        run: |
-          mkdir -p /tmp/m5-tone-output-consumer/src
-          cat > /tmp/m5-tone-output-consumer/platformio.ini <<'EOF'
-          [env:esp32dev]
-          platform = platformio/espressif32@7.0.1
-          board = esp32dev
-          framework = arduino
-          lib_deps =
-            monophonic-instrument=file://${{ github.workspace }}/packages/monophonic-instrument
-            m5-tone-output=file://${{ github.workspace }}/packages/m5-tone-output
-          EOF
-          cat > /tmp/m5-tone-output-consumer/src/main.cpp <<'EOF'
-          #include <Arduino.h>
-          #include <M5Unified.h>
-
-          #include "MonophonicInstrument.h"
-          #include "MonophonicInstrumentSink.h"
-          #include "M5BuzzerToneOutput.h"
-
-          MonophonicInstrument instrument;
-          M5BuzzerToneOutput output;
-          MonophonicInstrumentSink sink(instrument, output);
-
-          void setup() {
-            output.setWaveform(instrument.waveform());
-            output.setVelocityVolumeRange({64, 128});
-            sink.onNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
-            sink.onNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
-          }
-
-          void loop() {}
-          EOF
-          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/m5-tone-output-consumer
+      - name: Build M5 tone output consumer
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio run -d ci/consumers/m5-tone-output
 
   plus2-buzzer-local-test:
     name: Plus2 buzzer local test app
