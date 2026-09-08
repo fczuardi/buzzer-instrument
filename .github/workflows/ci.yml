@@ -94,3 +94,53 @@ jobs:
           void loop() {}
           EOF
           env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/buzzer-instrument-consumer
+
+  monophonic-package:
+    name: Monophonic package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v5
+        with:
+          path: .platformio-home
+          key: platformio-monophonic-${{ runner.os }}-${{ hashFiles('packages/embedded-music-monophonic/platformio.ini', 'packages/embedded-music-monophonic/library.json') }}
+          restore-keys: |
+            platformio-monophonic-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.19
+
+      - name: Run package native tests
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio test -d packages/embedded-music-monophonic -e native
+
+      - name: Pack monophonic package
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio pkg pack packages/embedded-music-monophonic --output /tmp
+
+      - name: Build temporary monophonic consumer
+        run: |
+          mkdir -p /tmp/monophonic-package-consumer/src
+          cat > /tmp/monophonic-package-consumer/platformio.ini <<'EOF'
+          [env:native]
+          platform = native
+          lib_deps =
+            file://${{ github.workspace }}/packages/embedded-music-monophonic
+          EOF
+          cat > /tmp/monophonic-package-consumer/src/main.cpp <<'EOF'
+          #include "MonophonicInstrument.h"
+
+          int main() {
+            MonophonicInstrument instrument;
+            const VoiceAction action = instrument.noteOn(69, 100);
+            return action.type == VoiceActionType::StartNote ? 0 : 1;
+          }
+          EOF
+          env PLATFORMIO_CORE_DIR=.platformio-home pio run -d /tmp/monophonic-package-consumer

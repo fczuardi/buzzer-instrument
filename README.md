@@ -1,8 +1,15 @@
-# Buzzer instrument
+# Monophonic instrument
 
-A small experiment in making a musical instrument with a passive buzzer.
+Monophonic instrument experiments for small embedded music devices.
 
-The first target is the buzzer built into the M5StickC Plus2. The repository name is intentionally hardware-neutral: support for similar GPIO/PWM-driven buzzers may be added later when a real second target makes the required adaptation clear.
+This repository started as the M5StickC Plus2 buzzer instrument and was renamed
+after the Core Gray speaker experiment exposed the same `VoiceOutput` boundary.
+It is now the home for the shared monophonic instrument policy and M5 audio
+output backends.
+
+The current root firmware still targets the buzzer built into the M5StickC
+Plus2. The package/app layout is being migrated in small slices under
+`packages/` and `apps/`.
 
 ## First milestone
 
@@ -18,7 +25,9 @@ The first implementation should remain useful without MIDI. Integration with [mi
 
 ## Scope
 
-This is not currently a general synthesizer, audio framework, sequencer, or reusable library. Those directions may be explored later, based on working code.
+This is not currently a general synthesizer, audio framework, or sequencer.
+Reusable PlatformIO packages are being extracted based on working code and real
+hardware validation.
 
 The broader context and provisional architecture are documented in [embedded-music-experiments](https://github.com/fczuardi/embedded-music-experiments).
 
@@ -66,21 +75,26 @@ and musical purpose without forking or modifying this package.
 `EmbeddedMusicFirmwareContracts` PlatformIO package in
 `embedded-music-experiments`.
 
-The root `library.json` packages the reusable instrument pieces as
-`EmbeddedMusicBuzzerInstrument`, so a separate showcase firmware can consume the
-buzzer instrument without importing this repository's local button smoke test.
+The root `library.json` still packages the legacy buzzer instrument as
+`EmbeddedMusicBuzzerInstrument`, so a separate showcase firmware can consume
+the current buzzer instrument without importing this repository's local button
+smoke test. The new `packages/embedded-music-monophonic` package is the first
+step toward splitting the shared policy from the M5 output backends.
 
 ## Commands
 
 ```bash
 pio test -e native
+pio test -d packages/embedded-music-monophonic -e native
 pio run
 pio pkg pack . --output /tmp
+pio pkg pack packages/embedded-music-monophonic --output /tmp
 pio run --target upload
 pio device monitor
 ```
 
 ## CI
 
-GitHub Actions runs native tests and the M5StickC Plus2 firmware build on pushes
-and pull requests. The workflow lives at `.github/workflows/ci.yml`.
+GitHub Actions runs native tests, the M5StickC Plus2 firmware build, the legacy
+root package check, and the new `embedded-music-monophonic` package checks on
+pushes and pull requests. The workflow lives at `.github/workflows/ci.yml`.

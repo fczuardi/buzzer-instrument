@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
+  "name": "EmbeddedMusicMonophonic",
+  "version": "0.1.0",
+  "description": "Monophonic instrument policy for embedded music experiments",
+  "keywords": ["instrument", "midi", "monophonic", "embedded", "music"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fczuardi/monophonic-instrument.git"
+  },
+  "frameworks": "*",
+  "platforms": "*",
+  "headers": [
+    "MidiNote.h",
+    "MonophonicInstrument.h",
+    "MonophonicInstrumentSink.h",
+    "ToneWaveform.h",
+    "VoiceOutput.h"
+  ],
+  "dependencies": [
+    {
+      "name": "EmbeddedMusicFirmwareContracts",
+      "version": "https://github.com/fczuardi/embedded-music-experiments.git#154035d94df99ab05c3eeb7eb144bf2012972ada"
+    }
+  ]
+}

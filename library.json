@@ -6,7 +6,7 @@
   "keywords": ["buzzer", "instrument", "midi", "embedded", "music"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/fczuardi/buzzer-instrument.git"
+    "url": "https://github.com/fczuardi/monophonic-instrument.git"
   },
   "frameworks": "arduino",
   "platforms": "espressif32",
