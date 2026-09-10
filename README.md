@@ -121,3 +121,14 @@ pio device monitor -d apps/core-gray-speaker-local-test
 GitHub Actions runs the extracted package checks, native policy tests, consumer
 fixtures, and both the M5StickC Plus2 and M5Stack Core Gray local app builds on
 pushes and pull requests. The workflow lives at `.github/workflows/ci.yml`.
+
+## Package Releases
+
+The repository root is not released as a PlatformIO package. Package releases
+use custom GitHub Release assets generated from concrete package directories.
+
+For `packages/monophonic-instrument`, tags shaped like
+`monophonic-instrument-v0.1.2` trigger a workflow that verifies the manifest
+version, runs tests, packs the subdirectory with `pio pkg pack`, and uploads
+`monophonic-instrument-0.1.2.tar.gz` as the release asset. Consumers should use
+that custom asset, not GitHub's automatic monorepo source archive.

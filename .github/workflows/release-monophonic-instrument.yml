@@ -1,0 +1,77 @@
+name: Release monophonic-instrument package
+
+on:
+  push:
+    tags:
+      - "monophonic-instrument-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Pack and release monophonic-instrument
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v5
+        with:
+          path: .platformio-home
+          key: platformio-release-monophonic-${{ runner.os }}-${{ hashFiles('packages/monophonic-instrument/platformio.ini', 'packages/monophonic-instrument/library.json', 'ci/consumers/monophonic-package/platformio.ini', 'ci/consumers/monophonic-package/src/main.cpp') }}
+          restore-keys: |
+            platformio-release-monophonic-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.1.19
+
+      - name: Run package native tests
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio test -d packages/monophonic-instrument -e native
+
+      - name: Build isolated package consumer
+        run: env PLATFORMIO_CORE_DIR=.platformio-home pio run -d ci/consumers/monophonic-package
+
+      - name: Verify tag matches package version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#monophonic-instrument-v}"
+          manifest_version="$(python -c 'import json; print(json.load(open("packages/monophonic-instrument/library.json", encoding="utf-8"))["version"])')"
+
+          if [[ "$version" != "$manifest_version" ]]; then
+            echo "Tag version '$version' does not match manifest version '$manifest_version'." >&2
+            exit 1
+          fi
+
+          echo "version=$manifest_version" >> "$GITHUB_OUTPUT"
+
+      - name: Pack monophonic-instrument package
+        id: pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          staging="${RUNNER_TEMP}/monophonic-package"
+          mkdir -p "$staging"
+          env PLATFORMIO_CORE_DIR=.platformio-home \
+            pio pkg pack packages/monophonic-instrument --output "$staging"
+          asset="${staging}/monophonic-instrument-${{ steps.version.outputs.version }}.tar.gz"
+          test -f "$asset"
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: ${{ steps.pack.outputs.asset }}
+          overwrite_files: true
