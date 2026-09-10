@@ -12,13 +12,13 @@ Current public classes:
 - `M5CoreGrayToneOutput`: M5Stack Core Gray internal speaker defaults backed by
   `M5ToneOutputCore`.
 
-Consumers must also depend on `monophonic-instrument` while these packages are
-consumed from local paths or archives:
+Starting with `0.1.3`, the PlatformIO Registry package declares its dependency
+on `fcz2/monophonic-instrument`, so registry consumers can install
+`m5-tone-output` directly:
 
 ```ini
 lib_deps =
-  monophonic-instrument=file://../../monophonic-instrument/packages/monophonic-instrument
-  m5-tone-output=file://../../monophonic-instrument/packages/m5-tone-output
+  fcz2/m5-tone-output@0.1.3
 ```
 
 The package will also host regular M5 speaker output classes, starting with the
