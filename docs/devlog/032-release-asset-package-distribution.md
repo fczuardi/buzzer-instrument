@@ -79,8 +79,7 @@ monophonic-instrument-v0.1.2
 
 ## Verification
 
-The release workflow itself runs only after the tag is pushed. Local validation
-for this slice should cover the same package checks:
+Local validation for this slice covered the same package checks:
 
 ```sh
 pio test -d packages/monophonic-instrument -e native
@@ -90,8 +89,23 @@ pio run -d apps/plus2-buzzer-local-test
 pio run -d apps/core-gray-speaker-local-test
 ```
 
+The `monophonic-instrument-v0.1.2` tag was pushed after confirming no existing
+tag with that name existed. The release workflow completed successfully and
+published the readable package asset:
+
+```text
+https://github.com/fczuardi/monophonic-instrument/releases/download/monophonic-instrument-v0.1.2/monophonic-instrument-0.1.2.tar.gz
+```
+
 ## Limits
 
-This slice adds the release mechanism but does not by itself prove the final
-remote asset URL. That requires pushing a non-conflicting tag and letting the
-GitHub Actions release workflow publish the custom package tarball.
+This slice publishes a PlatformIO package artifact, not a PlatformIO Registry
+entry. Consumers should use the custom release asset URL, not GitHub's automatic
+monorepo source archive and not GitHub Packages.
+
+One limitation remains for transitive package manifests in PlatformIO 6.1.19:
+dependency `version` strings are capped at 100 characters, while this release
+asset URL is longer. PlatformIO also treats GitHub URLs without `.zip`,
+`.tar.gz`, or `.tar.xz` suffixes as Git repositories, so a shorter no-extension
+asset alias is not a valid workaround. Direct `platformio.ini` consumers can
+still use the release asset URL.
