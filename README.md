@@ -9,6 +9,11 @@ output backends.
 
 Packages live under `packages/`. Device-level probes live under `apps/`.
 
+The repository root is intentionally not a PlatformIO package. This repo is a
+package host/monorepo: each `packages/<name>/` directory has its own
+`library.json` and is packed or consumed as an independent package. Consumers
+should not depend on the Git repository root as if it were one library.
+
 ## Current milestone
 
 Run the same monophonic instrument policy through two hardware-backed M5 audio

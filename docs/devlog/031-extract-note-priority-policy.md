@@ -36,11 +36,10 @@ This keeps existing tone and buzzer consumers working while making the
 note-priority policy usable by synth backends that should not depend on
 frequency or waveform output.
 
-The repository root now also contains a `library.json` for the
-`monophonic-instrument` package. PlatformIO Git dependencies install from the
-repository root, so this root manifest points `includeDir` and `srcDir` at
-`packages/monophonic-instrument`. Local archive-based consumers can still pack
-the subdirectory directly.
+The repository remains a package host/monorepo. The package manifest stays in
+`packages/monophonic-instrument/library.json`; the repository root is not a
+PlatformIO package. Consumers should pack or otherwise consume the concrete
+package directory, not the Git repository root.
 
 ## Verification
 

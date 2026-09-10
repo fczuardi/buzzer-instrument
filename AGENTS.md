@@ -28,6 +28,10 @@ working need for the same contract.
 - `apps/`: local hardware probes that consume packages.
 - `docs/devlog/`: one Markdown chapter per implementation slice.
 
+The repository root is intentionally not a PlatformIO package. Treat this repo
+as a package host/monorepo: consume `packages/<name>/` directories or packed
+archives, not the Git repository root.
+
 ## Build, Test, and Development Commands
 
 Use PlatformIO for package and app validation:
