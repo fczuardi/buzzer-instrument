@@ -132,3 +132,14 @@ For `packages/monophonic-instrument`, tags shaped like
 version, runs tests, packs the subdirectory with `pio pkg pack`, and uploads
 `monophonic-instrument-0.1.2.tar.gz` as the release asset. Consumers should use
 that custom asset, not GitHub's automatic monorepo source archive.
+
+For local PlatformIO Registry publishing, keep your token in an untracked
+`.env` file:
+
+```bash
+cp .env.example .env
+# edit .env and set PLATFORMIO_AUTH_TOKEN
+set -a
+source .env
+set +a
+```
