@@ -10,11 +10,17 @@ BLE transport.
 Current contents:
 
 - `MidiNote`
+- `MonophonicNotePriority`
 - `ToneWaveform`
 - `VoiceOutput`
 - `MonophonicInstrument`
 - `MonophonicInstrumentSink`
 - `ToneWaveformSamples`
+
+`MonophonicNotePriority` is the lowest-level performance policy. It tracks held
+MIDI notes and returns note actions without knowing how sound is rendered.
+`MonophonicInstrument` builds on that policy and adds frequency, pitch bend,
+and waveform state for tone-style outputs.
 
 Local sibling projects can consume it with:
 
