@@ -126,6 +126,8 @@ pushes and pull requests. The workflow lives at `.github/workflows/ci.yml`.
 
 The repository root is not released as a PlatformIO package. Package releases
 use custom GitHub Release assets generated from concrete package directories.
+During the experimental phase, `0.x.y` package versions may change APIs without
+backward-compatibility guarantees.
 
 For `packages/monophonic-instrument`, tags shaped like
 `monophonic-instrument-v0.1.2` trigger a workflow that verifies the manifest
