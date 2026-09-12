@@ -176,13 +176,19 @@ void test_typed_note_on_event_with_zero_velocity_is_note_off() {
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
-void test_typed_note_event_channel_is_currently_ignored() {
+void test_typed_note_event_channel_is_part_of_note_identity() {
   MonophonicInstrument instrument;
 
   instrument.handleNoteEvent({NoteEventType::NoteOn, 1, 60, 100});
-  const VoiceAction action =
+  const VoiceAction wrongChannelAction =
       instrument.handleNoteEvent({NoteEventType::NoteOff, 16, 60, 0});
 
+  assertVoiceAction(wrongChannelAction, VoiceActionType::None, 0);
+  TEST_ASSERT_TRUE(instrument.isNoteActive());
+  TEST_ASSERT_EQUAL_UINT8(1, instrument.activeMidiChannel());
+
+  const VoiceAction action =
+      instrument.handleNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
   assertVoiceAction(action, VoiceActionType::StopNote, 60);
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
@@ -375,7 +381,7 @@ int main(int, char**) {
   RUN_TEST(test_typed_note_on_event_starts_note);
   RUN_TEST(test_typed_note_off_event_stops_matching_note);
   RUN_TEST(test_typed_note_on_event_with_zero_velocity_is_note_off);
-  RUN_TEST(test_typed_note_event_channel_is_currently_ignored);
+  RUN_TEST(test_typed_note_event_channel_is_part_of_note_identity);
   RUN_TEST(test_latest_velocity_is_used_for_repeated_note_on);
   RUN_TEST(test_stop_all_silences_active_note_and_clears_held_notes);
   RUN_TEST(test_over_capacity_discards_oldest_held_note);

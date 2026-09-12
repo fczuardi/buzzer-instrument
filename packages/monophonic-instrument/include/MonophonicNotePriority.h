@@ -27,11 +27,17 @@ class MonophonicNotePriority {
   static constexpr uint8_t DEFAULT_TEST_NOTE = 60;
 
   bool isNoteActive() const;
+  uint8_t activeMidiChannel() const;
   uint8_t activeMidiNote() const;
   uint8_t activeVelocity() const;
 
   MonophonicNoteAction noteOn(uint8_t midiNote, uint8_t velocity);
   MonophonicNoteAction noteOff(uint8_t midiNote);
+  MonophonicNoteAction noteOn(
+      uint8_t midiChannel,
+      uint8_t midiNote,
+      uint8_t velocity);
+  MonophonicNoteAction noteOff(uint8_t midiChannel, uint8_t midiNote);
   MonophonicNoteAction handleNoteEvent(const NoteEvent& event);
   MonophonicNoteAction stopAll();
 
@@ -41,6 +47,7 @@ class MonophonicNotePriority {
   static constexpr size_t MAX_HELD_NOTES = 16;
 
   struct HeldNote {
+    uint8_t midiChannel = 0;
     uint8_t midiNote = 0;
     uint8_t velocity = 0;
   };
@@ -50,11 +57,12 @@ class MonophonicNotePriority {
       uint8_t velocity);
   static MonophonicNoteAction stopAction(uint8_t midiNote);
 
-  int heldNoteIndex(uint8_t midiNote) const;
+  int heldNoteIndex(uint8_t midiChannel, uint8_t midiNote) const;
   void removeHeldNoteAt(size_t index);
-  void pushHeldNote(uint8_t midiNote, uint8_t velocity);
+  void pushHeldNote(uint8_t midiChannel, uint8_t midiNote, uint8_t velocity);
 
   bool noteActive_ = false;
+  uint8_t activeMidiChannel_ = 0;
   uint8_t activeMidiNote_ = DEFAULT_TEST_NOTE;
   uint8_t activeVelocity_ = 0;
   HeldNote heldNotes_[MAX_HELD_NOTES] = {};

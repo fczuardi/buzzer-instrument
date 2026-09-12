@@ -8,6 +8,10 @@ bool MonophonicInstrument::isNoteActive() const {
   return notePriority_.isNoteActive();
 }
 
+uint8_t MonophonicInstrument::activeMidiChannel() const {
+  return notePriority_.activeMidiChannel();
+}
+
 uint8_t MonophonicInstrument::midiNoteNumber() const {
   return notePriority_.activeMidiNote();
 }

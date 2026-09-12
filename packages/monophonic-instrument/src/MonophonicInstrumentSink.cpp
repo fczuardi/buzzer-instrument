@@ -18,6 +18,10 @@ void MonophonicInstrumentSink::onDisconnected() {
   panic();
 }
 
+uint8_t MonophonicInstrumentSink::activeMidiChannel() const {
+  return instrument_.activeMidiChannel();
+}
+
 void MonophonicInstrumentSink::panic() {
   instrument_.stopAll();
   voiceOutput_.stopNote();

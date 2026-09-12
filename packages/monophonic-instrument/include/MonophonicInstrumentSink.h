@@ -18,6 +18,8 @@ public:
   void onPitchBendEvent(const PitchBendEvent& event) override;
   void onDisconnected() override;
 
+  uint8_t activeMidiChannel() const;
+
   // Silence all held note state and physical output immediately.
   //
   // This is useful for local panic controls. It is intentionally separate from

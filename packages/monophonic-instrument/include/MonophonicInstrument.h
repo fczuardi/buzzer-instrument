@@ -31,6 +31,7 @@ public:
       MonophonicNotePriority::DEFAULT_TEST_NOTE;
 
   bool isNoteActive() const;
+  uint8_t activeMidiChannel() const;
   uint8_t midiNoteNumber() const;
   float frequencyHz() const;
   int16_t pitchBendValue() const;

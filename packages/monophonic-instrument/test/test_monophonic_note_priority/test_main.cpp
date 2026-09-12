@@ -72,6 +72,21 @@ void test_stop_all_clears_held_notes() {
   assertNoteAction(staleOff, MonophonicNoteActionType::None, 0);
 }
 
+void test_cross_channel_fallback_preserves_note_identity() {
+  MonophonicNotePriority priority;
+
+  priority.noteOn(0, 60, 72);
+  priority.noteOn(1, 64, 110);
+  const MonophonicNoteAction fallback = priority.noteOff(1, 64);
+
+  assertNoteAction(fallback, MonophonicNoteActionType::StartNote, 60, 72);
+  TEST_ASSERT_EQUAL_UINT8(0, priority.activeMidiChannel());
+
+  const MonophonicNoteAction stop = priority.noteOff(0, 60);
+  assertNoteAction(stop, MonophonicNoteActionType::StopNote, 60);
+  TEST_ASSERT_FALSE(priority.isNoteActive());
+}
+
 int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_note_on_activates_requested_note);
@@ -79,5 +94,6 @@ int main(int, char**) {
   RUN_TEST(test_note_off_for_non_current_note_does_not_touch_active_note);
   RUN_TEST(test_note_on_with_zero_velocity_is_note_off);
   RUN_TEST(test_stop_all_clears_held_notes);
+  RUN_TEST(test_cross_channel_fallback_preserves_note_identity);
   return UNITY_END();
 }
