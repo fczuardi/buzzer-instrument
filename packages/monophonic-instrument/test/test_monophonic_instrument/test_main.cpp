@@ -7,10 +7,12 @@ void assertVoiceAction(
     const VoiceAction& action,
     VoiceActionType expectedType,
     uint8_t expectedMidiNote,
-    uint8_t expectedVelocity = 0) {
+    uint8_t expectedVelocity = 0,
+    uint8_t expectedMidiChannel = 0) {
   TEST_ASSERT_EQUAL(expectedType, action.type);
   TEST_ASSERT_EQUAL_UINT8(expectedMidiNote, action.midiNote);
   TEST_ASSERT_EQUAL_UINT8(expectedVelocity, action.velocity);
+  TEST_ASSERT_EQUAL_UINT8(expectedMidiChannel, action.midiChannel);
 }
 
 void assertStartFrequency(
@@ -149,7 +151,7 @@ void test_typed_note_on_event_starts_note() {
 
   const VoiceAction action = instrument.handleNoteEvent(event);
 
-  assertVoiceAction(action, VoiceActionType::StartNote, 65, 88);
+  assertVoiceAction(action, VoiceActionType::StartNote, 65, 88, 3);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(65, instrument.midiNoteNumber());
 }
@@ -161,7 +163,7 @@ void test_typed_note_off_event_stops_matching_note() {
   const VoiceAction action =
       instrument.handleNoteEvent({NoteEventType::NoteOff, 2, 65, 0});
 
-  assertVoiceAction(action, VoiceActionType::StopNote, 65);
+  assertVoiceAction(action, VoiceActionType::StopNote, 65, 0, 2);
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
@@ -172,7 +174,7 @@ void test_typed_note_on_event_with_zero_velocity_is_note_off() {
   const VoiceAction action =
       instrument.handleNoteEvent({NoteEventType::NoteOn, 1, 60, 0});
 
-  assertVoiceAction(action, VoiceActionType::StopNote, 60);
+  assertVoiceAction(action, VoiceActionType::StopNote, 60, 0, 1);
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
@@ -189,7 +191,7 @@ void test_typed_note_event_channel_is_part_of_note_identity() {
 
   const VoiceAction action =
       instrument.handleNoteEvent({NoteEventType::NoteOff, 1, 60, 0});
-  assertVoiceAction(action, VoiceActionType::StopNote, 60);
+  assertVoiceAction(action, VoiceActionType::StopNote, 60, 0, 1);
   TEST_ASSERT_FALSE(instrument.isNoteActive());
 }
 
@@ -204,6 +206,17 @@ void test_latest_velocity_is_used_for_repeated_note_on() {
   assertVoiceAction(action, VoiceActionType::StartNote, 64, 100);
   TEST_ASSERT_TRUE(instrument.isNoteActive());
   TEST_ASSERT_EQUAL_UINT8(64, instrument.midiNoteNumber());
+}
+
+void test_cross_channel_fallback_preserves_voice_action_identity() {
+  MonophonicInstrument instrument;
+
+  instrument.handleNoteEvent({NoteEventType::NoteOn, 0, 60, 72});
+  instrument.handleNoteEvent({NoteEventType::NoteOn, 1, 64, 110});
+  const VoiceAction action =
+      instrument.handleNoteEvent({NoteEventType::NoteOff, 1, 64, 0});
+
+  assertVoiceAction(action, VoiceActionType::StartNote, 60, 72, 0);
 }
 
 void test_stop_all_silences_active_note_and_clears_held_notes() {
@@ -383,6 +396,7 @@ int main(int, char**) {
   RUN_TEST(test_typed_note_on_event_with_zero_velocity_is_note_off);
   RUN_TEST(test_typed_note_event_channel_is_part_of_note_identity);
   RUN_TEST(test_latest_velocity_is_used_for_repeated_note_on);
+  RUN_TEST(test_cross_channel_fallback_preserves_voice_action_identity);
   RUN_TEST(test_stop_all_silences_active_note_and_clears_held_notes);
   RUN_TEST(test_over_capacity_discards_oldest_held_note);
   RUN_TEST(test_frequency_and_name_follow_active_note);

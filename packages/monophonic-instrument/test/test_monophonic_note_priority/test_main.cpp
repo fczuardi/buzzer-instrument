@@ -80,6 +80,7 @@ void test_cross_channel_fallback_preserves_note_identity() {
   const MonophonicNoteAction fallback = priority.noteOff(1, 64);
 
   assertNoteAction(fallback, MonophonicNoteActionType::StartNote, 60, 72);
+  TEST_ASSERT_EQUAL_UINT8(0, fallback.midiChannel);
   TEST_ASSERT_EQUAL_UINT8(0, priority.activeMidiChannel());
 
   const MonophonicNoteAction stop = priority.noteOff(0, 60);

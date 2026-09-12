@@ -18,6 +18,7 @@ struct VoiceAction {
   uint8_t midiNote;
   uint8_t velocity;
   float frequencyHz;
+  uint8_t midiChannel = 0;
 };
 
 // Owns the musical state for the current one-note instrument experiment.
@@ -53,8 +54,11 @@ private:
   static constexpr int16_t PITCH_BEND_DEAD_ZONE = 128;
   static constexpr float DEFAULT_PITCH_BEND_RANGE_SEMITONES = 2.0f;
 
-  VoiceAction startAction(uint8_t midiNoteNumber, uint8_t velocity) const;
-  VoiceAction stopAction(uint8_t midiNoteNumber) const;
+  VoiceAction startAction(
+      uint8_t midiChannel,
+      uint8_t midiNoteNumber,
+      uint8_t velocity) const;
+  VoiceAction stopAction(uint8_t midiChannel, uint8_t midiNoteNumber) const;
   VoiceAction voiceActionFromNoteAction(
       const MonophonicNoteAction& action) const;
   float bentFrequencyHz(uint8_t midiNoteNumber) const;

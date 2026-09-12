@@ -56,6 +56,7 @@ VoiceAction MonophonicInstrument::handlePitchBendEvent(
   }
 
   return startAction(
+      notePriority_.activeMidiChannel(),
       notePriority_.activeMidiNote(),
       notePriority_.activeVelocity());
 }
@@ -89,6 +90,7 @@ void MonophonicInstrument::selectNextWaveform() {
 }
 
 VoiceAction MonophonicInstrument::startAction(
+    uint8_t midiChannel,
     uint8_t midiNoteNumber,
     uint8_t velocity) const {
   return {
@@ -96,11 +98,14 @@ VoiceAction MonophonicInstrument::startAction(
       midiNoteNumber,
       velocity,
       bentFrequencyHz(midiNoteNumber),
+      midiChannel,
   };
 }
 
-VoiceAction MonophonicInstrument::stopAction(uint8_t midiNoteNumber) const {
-  return {VoiceActionType::StopNote, midiNoteNumber, 0, 0.0f};
+VoiceAction MonophonicInstrument::stopAction(
+    uint8_t midiChannel,
+    uint8_t midiNoteNumber) const {
+  return {VoiceActionType::StopNote, midiNoteNumber, 0, 0.0f, midiChannel};
 }
 
 VoiceAction MonophonicInstrument::voiceActionFromNoteAction(
@@ -109,9 +114,9 @@ VoiceAction MonophonicInstrument::voiceActionFromNoteAction(
     case MonophonicNoteActionType::None:
       return {VoiceActionType::None, 0, 0, 0.0f};
     case MonophonicNoteActionType::StartNote:
-      return startAction(action.midiNote, action.velocity);
+      return startAction(action.midiChannel, action.midiNote, action.velocity);
     case MonophonicNoteActionType::StopNote:
-      return stopAction(action.midiNote);
+      return stopAction(action.midiChannel, action.midiNote);
   }
 
   return {VoiceActionType::None, 0, 0, 0.0f};

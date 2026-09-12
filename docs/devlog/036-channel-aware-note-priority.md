@@ -20,7 +20,7 @@ the event channel.
 ## Verification
 
 Native tests cover cross-channel fallback and ensure a Note Off from the wrong
-channel cannot release a held note. All 50 native test cases passed.
+channel cannot release a held note. All 51 native test cases passed.
 
 The AMY dual-channel consumer was rebuilt against `monophonic-instrument@0.1.3`
 and validated on the Core Gray. A sequence involving channel switching,

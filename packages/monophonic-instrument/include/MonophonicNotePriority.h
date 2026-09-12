@@ -15,6 +15,7 @@ struct MonophonicNoteAction {
   MonophonicNoteActionType type;
   uint8_t midiNote;
   uint8_t velocity;
+  uint8_t midiChannel = 0;
 };
 
 // Tracks held MIDI notes and chooses the one monophonic note that should sound.
@@ -53,9 +54,12 @@ class MonophonicNotePriority {
   };
 
   static MonophonicNoteAction startAction(
+      uint8_t midiChannel,
       uint8_t midiNote,
       uint8_t velocity);
-  static MonophonicNoteAction stopAction(uint8_t midiNote);
+  static MonophonicNoteAction stopAction(
+      uint8_t midiChannel,
+      uint8_t midiNote);
 
   int heldNoteIndex(uint8_t midiChannel, uint8_t midiNote) const;
   void removeHeldNoteAt(size_t index);

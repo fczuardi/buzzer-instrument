@@ -40,7 +40,7 @@ MonophonicNoteAction MonophonicNotePriority::noteOn(
   activeMidiNote_ = midiNote;
   activeVelocity_ = velocity;
   noteActive_ = true;
-  return startAction(midiNote, velocity);
+  return startAction(midiChannel, midiNote, velocity);
 }
 
 MonophonicNoteAction MonophonicNotePriority::noteOff(uint8_t midiNote) {
@@ -52,7 +52,7 @@ MonophonicNoteAction MonophonicNotePriority::noteOff(
     uint8_t midiNote) {
   const int existingIndex = heldNoteIndex(midiChannel, midiNote);
   if (existingIndex < 0) {
-    return {MonophonicNoteActionType::None, 0, 0};
+    return {MonophonicNoteActionType::None, 0, 0, 0};
   }
 
   const bool removingActiveNote = noteActive_ &&
@@ -67,14 +67,19 @@ MonophonicNoteAction MonophonicNotePriority::noteOff(
     noteActive_ = false;
     activeMidiChannel_ = 0;
     activeVelocity_ = 0;
-    return stopAction(midiNote);
+    return {MonophonicNoteActionType::StopNote, midiNote, 0, midiChannel};
   }
 
   const HeldNote& previousNote = heldNotes_[heldNoteCount_ - 1];
   activeMidiChannel_ = previousNote.midiChannel;
   activeMidiNote_ = previousNote.midiNote;
   activeVelocity_ = previousNote.velocity;
-  return startAction(activeMidiNote_, activeVelocity_);
+  return {
+      MonophonicNoteActionType::StartNote,
+      activeMidiNote_,
+      activeVelocity_,
+      activeMidiChannel_,
+  };
 }
 
 MonophonicNoteAction MonophonicNotePriority::handleNoteEvent(
@@ -86,7 +91,7 @@ MonophonicNoteAction MonophonicNotePriority::handleNoteEvent(
       return noteOff(event.channel, event.note);
   }
 
-  return {MonophonicNoteActionType::None, 0, 0};
+  return {MonophonicNoteActionType::None, 0, 0, 0};
 }
 
 MonophonicNoteAction MonophonicNotePriority::stopAll() {
@@ -94,25 +99,34 @@ MonophonicNoteAction MonophonicNotePriority::stopAll() {
     activeVelocity_ = 0;
     activeMidiChannel_ = 0;
     heldNoteCount_ = 0;
-    return {MonophonicNoteActionType::None, 0, 0};
+    return {MonophonicNoteActionType::None, 0, 0, 0};
   }
 
+  const uint8_t stoppedChannel = activeMidiChannel_;
   const uint8_t stoppedNote = activeMidiNote_;
   noteActive_ = false;
   activeMidiChannel_ = 0;
   activeVelocity_ = 0;
   heldNoteCount_ = 0;
-  return stopAction(stoppedNote);
+  return stopAction(stoppedChannel, stoppedNote);
 }
 
 MonophonicNoteAction MonophonicNotePriority::startAction(
+    uint8_t midiChannel,
     uint8_t midiNote,
     uint8_t velocity) {
-  return {MonophonicNoteActionType::StartNote, midiNote, velocity};
+  return {
+      MonophonicNoteActionType::StartNote,
+      midiNote,
+      velocity,
+      midiChannel,
+  };
 }
 
-MonophonicNoteAction MonophonicNotePriority::stopAction(uint8_t midiNote) {
-  return {MonophonicNoteActionType::StopNote, midiNote, 0};
+MonophonicNoteAction MonophonicNotePriority::stopAction(
+    uint8_t midiChannel,
+    uint8_t midiNote) {
+  return {MonophonicNoteActionType::StopNote, midiNote, 0, midiChannel};
 }
 
 int MonophonicNotePriority::heldNoteIndex(
